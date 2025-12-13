@@ -79,7 +79,7 @@ export default function LabelDesigner() {
           {/* Back Button */}
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/products')}
             className="mb-4 gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
