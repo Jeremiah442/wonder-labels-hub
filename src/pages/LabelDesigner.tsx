@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   Car, Bike, Gamepad2, Heart, Star, Trophy, Crown, Sparkles, 
   Sun, Moon, Flower2, Dog, Cat, Bird, Fish,
-  Palette, Type, Wand2
+  Palette, Type, Wand2, ArrowLeft
 } from 'lucide-react';
 
 const icons = [
@@ -69,10 +70,21 @@ export default function LabelDesigner() {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
+  const navigate = useNavigate();
+
   return (
     <Layout>
       <section className="py-8 md:py-12">
         <div className="container px-4">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="mb-4 gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
