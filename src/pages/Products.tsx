@@ -24,7 +24,7 @@ const products = [
     price: '20,000 UGX',
     originalPrice: '57,000 UGX',
     discount: '63% OFF',
-    link: '/designer',
+    link: '/designer/square',
   },
   {
     id: 3,

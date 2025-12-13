@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import LabelDesigner from "./pages/LabelDesigner";
+import SquareLabelDesigner from "./pages/SquareLabelDesigner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/products" element={<Products />} />
             <Route path="/designer" element={<LabelDesigner />} />
+            <Route path="/designer/square" element={<SquareLabelDesigner />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
