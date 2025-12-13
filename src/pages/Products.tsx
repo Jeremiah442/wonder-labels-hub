@@ -17,7 +17,7 @@ const products = [
   },
   {
     id: 2,
-    name: 'Name Labels Pack - 100+ Stick On Labels',
+    name: 'Square Labels',
     description: 'Great starter pack! Perfect for labeling books, notebooks, and school supplies. Easy to stick and remove!',
     image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=400&fit=crop',
     features: ['100+ labels', 'Easy to apply', 'Various sizes', 'Kid-friendly'],
