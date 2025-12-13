@@ -8,7 +8,7 @@ const products = [
     id: 1,
     name: 'Circular Labels',
     description: 'Perfect for labeling all your school items! Mix of stick-on labels with fun icons and colors. Waterproof and durable!',
-    image: '/circular-labels.jpg',
+    image: '/circular-labels.jpeg',
     features: ['200+ labels', 'Multiple colors', 'Fun icons', 'Waterproof'],
     price: '20,000 UGX',
     originalPrice: '',
