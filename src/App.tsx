@@ -7,11 +7,11 @@ import { AuthProvider } from "@/lib/auth";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Products from "./pages/Products";
-import Portfolio from "./pages/Portfolio";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import LabelDesigner from "./pages/LabelDesigner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/products" element={<Products />} />
-            <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/designer" element={<LabelDesigner />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />

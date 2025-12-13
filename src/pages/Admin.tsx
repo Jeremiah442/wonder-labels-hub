@@ -176,7 +176,7 @@ export default function Admin() {
             </div>
           </div>
 
-          <Tabs defaultValue="orders" className="space-y-6">
+          <Tabs className="space-y-6">
             <TabsList className="bg-surface-1 border border-border">
               <TabsTrigger value="orders">Orders</TabsTrigger>
               <TabsTrigger value="contacts">Contact Requests</TabsTrigger>

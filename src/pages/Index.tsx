@@ -37,10 +37,10 @@ const features = [
 ];
 
 const stats = [
-  { value: '10K+', label: 'Labels Delivered' },
-  { value: '500+', label: 'Happy Clients' },
-  { value: '15+', label: 'Years Experience' },
-  { value: '99%', label: 'Satisfaction Rate' },
+  { value: '', label: 'Labels Delivered' },
+  { value: '', label: 'Happy Clients' },
+  { value: '', label: 'Years Experience' },
+  { value: '', label: 'Satisfaction Rate' },
 ];
 
 export default function Index() {
@@ -79,8 +79,8 @@ export default function Index() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up stagger-3">
               <Button variant="hero" size="xl" asChild>
-                <Link to="/contact">
-                  Get a Quote
+                <Link to="/designer">
+                  Design Your Label
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
@@ -229,7 +229,7 @@ export default function Index() {
                   </Link>
                 </Button>
                 <Button variant="outline-gold" size="lg" asChild>
-                  <Link to="/portfolio">View Our Work</Link>
+                  <Link to="/products">View Products</Link>
                 </Button>
               </div>
             </div>

@@ -6,51 +6,47 @@ import { ArrowRight } from 'lucide-react';
 const products = [
   {
     id: 1,
-    name: 'Custom Stickers',
-    description: 'High-quality custom stickers perfect for branding, packaging, and promotional use. Available in various shapes, sizes, and finishes.',
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=400&fit=crop',
-    features: ['Die-cut shapes', 'Matte or glossy finish', 'Waterproof options', 'Bulk pricing'],
-    price: 'From $0.10/sticker',
+    name: 'Circular Labels',
+    description: 'Perfect for labeling all your school items! Mix of stick-on labels with fun icons and colors. Waterproof and durable!',
+    image: '/circular-labels.jpg',
+    features: ['200+ labels', 'Multiple colors', 'Fun icons', 'Waterproof'],
+    price: '20,000 UGX',
+    originalPrice: '',
+    discount: '',
+    link: '/designer',
   },
   {
     id: 2,
-    name: 'Packaging Labels',
-    description: 'Professional packaging labels that enhance your product presentation. Perfect for food, cosmetics, and retail products.',
+    name: 'Name Labels Pack - 100+ Stick On Labels',
+    description: 'Great starter pack! Perfect for labeling books, notebooks, and school supplies. Easy to stick and remove!',
     image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=400&fit=crop',
-    features: ['FDA compliant', 'Custom sizes', 'Premium materials', 'Full color printing'],
-    price: 'From $0.15/label',
+    features: ['100+ labels', 'Easy to apply', 'Various sizes', 'Kid-friendly'],
+    price: '20,000 UGX',
+    originalPrice: '57,000 UGX',
+    discount: '63% OFF',
+    link: '/designer',
   },
   {
     id: 3,
-    name: 'Barcode Labels',
-    description: 'High-precision barcode and QR code labels for inventory management, retail, and logistics applications.',
+    name: 'Name Labels Pack - Stick On & Iron On Duo',
+    description: 'The perfect combo! Stick-on labels for books and iron-on labels for uniforms. Two great options in one pack!',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-    features: ['Scannable quality', 'Various formats', 'Thermal compatible', 'Durable adhesive'],
-    price: 'From $0.05/label',
+    features: ['Dual purpose', 'Iron-on included', 'Uniform ready', 'Long lasting'],
+    price: '19,000 UGX',
+    originalPrice: '50,000 UGX',
+    discount: '60% OFF',
+    link: '/designer',
   },
   {
     id: 4,
-    name: 'Product Labels',
-    description: 'Versatile product labels for any industry. From wine bottles to electronics, we have the perfect solution.',
+    name: 'Clothing Name Stamp',
+    description: 'A reusable stamp for marking uniforms! Just press and stamp your name directly onto fabric. No need for labels!',
     image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop',
-    features: ['Industry specific', 'Custom shapes', 'Variable data', 'Premium adhesives'],
-    price: 'From $0.12/label',
-  },
-  {
-    id: 5,
-    name: 'Roll Labels',
-    description: 'Convenient roll labels for high-volume applications. Perfect for automated labeling systems and fast-paced production.',
-    image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&h=400&fit=crop',
-    features: ['Core sizes available', 'Machine compatible', 'Large quantities', 'Quick turnaround'],
-    price: 'From $0.08/label',
-  },
-  {
-    id: 6,
-    name: 'Specialty Labels',
-    description: 'Unique specialty labels including holographic, metallic, and textured finishes for premium products.',
-    image: 'https://images.unsplash.com/photo-1636622433525-f6e2c8a5b11e?w=600&h=400&fit=crop',
-    features: ['Holographic options', 'Metallic finishes', 'Embossing available', 'Security features'],
-    price: 'From $0.25/label',
+    features: ['Reusable', 'Direct stamping', 'No labels needed', 'Quick application'],
+    price: '30,000 UGX',
+    originalPrice: '50,000 UGX',
+    discount: 'LIMITED TIME',
+    link: '/designer',
   },
 ];
 
@@ -62,11 +58,19 @@ export default function Products() {
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6 opacity-0 animate-fade-up">
-              Our <span className="text-gradient-gold">Products</span>
+              School <span className="text-gradient-gold">Labels</span>
             </h1>
             <p className="text-lg text-muted-foreground opacity-0 animate-fade-up stagger-1">
-              Discover our comprehensive range of labeling solutions designed to meet every business need.
+              Fun and colorful labels to help kids keep track of their school items! Design your own personalized labels! 🎨
             </p>
+            <div className="mt-6 opacity-0 animate-fade-up stagger-2">
+              <Button variant="gold" size="lg" asChild>
+                <Link to="/designer">
+                  Start Designing Your Label
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -81,13 +85,15 @@ export default function Products() {
                 className="group rounded-xl bg-gradient-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 hover-lift opacity-0 animate-fade-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="aspect-[3/2] overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+                {product.image && (
+                  <div className="aspect-[3/2] overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
                 <div className="p-6">
                   <h3 className="font-display text-xl font-semibold text-foreground mb-2">
                     {product.name}
@@ -103,11 +109,23 @@ export default function Products() {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <span className="text-primary font-semibold">{product.price}</span>
-                    <Button variant="ghost-gold" size="sm" asChild>
-                      <Link to="/contact">
-                        Get Quote
+                  <div className="pt-4 border-t border-border space-y-3">
+                    <div className="flex items-center gap-3">
+                      {product.originalPrice && (
+                        <span className="text-sm text-muted-foreground line-through">
+                          {product.originalPrice}
+                        </span>
+                      )}
+                      <span className="text-primary font-bold text-lg">{product.price}</span>
+                      {product.discount && (
+                        <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-1 rounded">
+                          {product.discount}
+                        </span>
+                      )}
+                    </div>
+                    <Button variant="gold" size="sm" className="w-full" asChild>
+                      <Link to={product.link || '/designer'}>
+                        Design Now
                         <ArrowRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>

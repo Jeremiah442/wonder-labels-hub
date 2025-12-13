@@ -40,7 +40,7 @@ export default function Dashboard() {
     labelType: '',
     size: '',
     material: '',
-    quantity: 100,
+    quantity: 0,
     notes: '',
   });
 
@@ -124,7 +124,7 @@ export default function Dashboard() {
       if (error) throw error;
 
       toast.success('Order placed successfully!');
-      setFormData({ labelType: '', size: '', material: '', quantity: 100, notes: '' });
+      setFormData({ labelType: '', size: '', material: '', quantity: 0, notes: '' });
       setSelectedFile(null);
       fetchOrders();
     } catch (error) {
@@ -184,7 +184,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <Tabs defaultValue="orders" className="space-y-6">
+          <Tabs className="space-y-6">
             <TabsList className="bg-surface-1 border border-border">
               <TabsTrigger value="orders">My Orders</TabsTrigger>
               <TabsTrigger value="new">New Order</TabsTrigger>
@@ -265,7 +265,7 @@ export default function Dashboard() {
                       onValueChange={(value) => setFormData({ ...formData, labelType: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {labelTypes.map((type) => (
@@ -282,7 +282,7 @@ export default function Dashboard() {
                       onValueChange={(value) => setFormData({ ...formData, size: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {sizes.map((size) => (
@@ -301,7 +301,7 @@ export default function Dashboard() {
                       onValueChange={(value) => setFormData({ ...formData, material: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select material" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {materials.map((material) => (
@@ -316,8 +316,8 @@ export default function Dashboard() {
                     <Input
                       type="number"
                       min={10}
-                      value={formData.quantity}
-                      onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 100 })}
+                      value={formData.quantity || ''}
+                      onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
                       required
                     />
                   </div>
@@ -349,7 +349,6 @@ export default function Dashboard() {
                   <Textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Any special instructions or requirements..."
                     rows={4}
                   />
                 </div>

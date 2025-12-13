@@ -6,17 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, Package } from 'lucide-react';
 import { z } from 'zod';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  phone: z.string().optional(),
 });
 
 const signUpSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[\d\s\-\+\(\)]+$/, 'Please enter a valid phone number'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
@@ -34,6 +36,7 @@ export default function Auth() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -62,12 +65,23 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
+          // Update phone number if provided
+          if (validated.phone) {
+            const { supabase } = await import('@/integrations/supabase/client');
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            if (currentUser) {
+              await supabase
+                .from('profiles')
+                .update({ phone: validated.phone })
+                .eq('user_id', currentUser.id);
+            }
+          }
           toast.success('Welcome back!');
           navigate('/dashboard');
         }
       } else {
         const validated = signUpSchema.parse(formData);
-        const { error } = await signUp(validated.email, validated.password, validated.fullName);
+        const { error } = await signUp(validated.email, validated.password, validated.fullName, validated.phone);
         if (error) {
           if (error.message.includes('already registered')) {
             toast.error('This email is already registered. Please sign in.');
@@ -92,17 +106,20 @@ export default function Auth() {
 
   return (
     <Layout>
-      <section className="py-24 min-h-[80vh] flex items-center">
+      <section className="py-24 min-h-[90vh] flex items-center bg-gradient-to-b from-background via-background to-surface-1">
         <div className="container px-4">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-                {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                <Package className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="font-display text-4xl font-bold text-foreground mb-2">
+                {mode === 'signin' ? 'Welcome Back' : 'Welcome to Wonder Labels'}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-lg">
                 {mode === 'signin'
                   ? 'Sign in to your account to continue'
-                  : 'Join Wonder Labels to start ordering'}
+                  : 'Create your account to get started with premium labeling solutions'}
               </p>
             </div>
 
@@ -117,7 +134,6 @@ export default function Auth() {
                         id="fullName"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder="John Doe"
                         className="pl-10"
                         required
                       />
@@ -134,9 +150,23 @@ export default function Auth() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="john@example.com"
                       className="pl-10"
                       required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="pl-10"
+                      required={mode === 'signup'}
                     />
                   </div>
                 </div>
@@ -150,7 +180,6 @@ export default function Auth() {
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="••••••••"
                       className="pl-10 pr-10"
                       required
                     />
@@ -174,7 +203,6 @@ export default function Auth() {
                         type={showPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        placeholder="••••••••"
                         className="pl-10"
                         required
                       />

@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -61,19 +61,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(!!data && !error);
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone: phone,
         },
       },
     });
+    
+    // Update the profile with phone number after signup
+    if (!error && data.user) {
+      // Try to update the profile (trigger creates it, but we need to add phone)
+      // Retry a few times in case trigger hasn't run yet
+      const updateProfile = async (retries = 5) => {
+        for (let i = 0; i < retries; i++) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ phone })
+            .eq('user_id', data.user!.id);
+          
+          if (!profileError) break;
+          
+          if (i < retries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      };
+      
+      updateProfile();
+    }
     
     return { error };
   };

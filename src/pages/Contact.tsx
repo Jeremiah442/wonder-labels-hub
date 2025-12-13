@@ -20,10 +20,10 @@ const contactSchema = z.object({
 });
 
 const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'hello@wonderlabels.com', href: 'mailto:hello@wonderlabels.com' },
-  { icon: Phone, label: 'Phone', value: '+1 (234) 567-890', href: 'tel:+1234567890' },
-  { icon: MapPin, label: 'Address', value: '123 Label Street, Print City, PC 12345', href: '#' },
-  { icon: Clock, label: 'Hours', value: 'Mon-Fri: 9AM-6PM EST', href: '#' },
+  { icon: Mail, label: 'Email', value: 'jmurungi2004@gmail.com', href: 'mailto:jmurungi2004@gmail.com' },
+  { icon: Phone, label: 'Phone', value: '0770829121', href: 'tel:0770829121' },
+  { icon: MapPin, label: 'Address', value: 'Magere-Gayaza', href: '#' },
+  { icon: Clock, label: 'Hours', value: '', href: '#' },
 ];
 
 export default function Contact() {
@@ -132,7 +132,6 @@ export default function Contact() {
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="John Doe"
                       required
                     />
                   </div>
@@ -143,7 +142,6 @@ export default function Contact() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="john@example.com"
                       required
                     />
                   </div>
@@ -156,7 +154,6 @@ export default function Contact() {
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+1 (234) 567-890"
                     />
                   </div>
                   <div className="space-y-2">
@@ -165,7 +162,6 @@ export default function Contact() {
                       id="company"
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      placeholder="Your Company"
                     />
                   </div>
                 </div>
@@ -177,7 +173,7 @@ export default function Contact() {
                     onValueChange={(value) => setFormData({ ...formData, requestType: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select request type" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="quote">Request a Quote</SelectItem>
@@ -195,7 +191,6 @@ export default function Contact() {
                     id="message"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Tell us about your project..."
                     rows={6}
                     required
                   />
