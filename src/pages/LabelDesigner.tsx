@@ -215,24 +215,67 @@ export default function LabelDesigner() {
                 <CardContent className="p-6">
                   <h2 className="text-xl font-bold mb-4 text-center">Preview</h2>
                   <div className="flex items-center justify-center min-h-[400px] p-8">
-                    <div
-                      className="w-64 h-32 rounded-xl border-4 border-gray-300 shadow-lg flex items-center justify-center gap-3 p-4 transition-all"
-                      style={{
-                        backgroundColor: labelData.backgroundColor,
-                        fontFamily: labelData.font,
-                      }}
-                    >
-                      {labelData.showIcon && (
-                        <span className="text-4xl">
-                          {labelData.icon.emoji}
-                        </span>
-                      )}
-                      <span
-                        className="text-2xl md:text-3xl font-bold"
-                        style={{ color: labelData.textColor }}
+                    <div className="flex items-end gap-4">
+                      {/* Large circle */}
+                      <div
+                        className="w-32 h-32 rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-3 transition-all"
+                        style={{
+                          backgroundColor: labelData.backgroundColor,
+                          fontFamily: labelData.font,
+                        }}
                       >
-                        {labelData.name || 'Your Name'}
-                      </span>
+                        {labelData.showIcon && (
+                          <span className="text-2xl mb-1">
+                            {labelData.icon.emoji}
+                          </span>
+                        )}
+                        <span
+                          className="text-sm font-bold text-center leading-tight"
+                          style={{ color: labelData.textColor }}
+                        >
+                          {labelData.name || 'Your Name'}
+                        </span>
+                      </div>
+                      {/* Medium circle */}
+                      <div
+                        className="w-24 h-24 rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all"
+                        style={{
+                          backgroundColor: labelData.backgroundColor,
+                          fontFamily: labelData.font,
+                        }}
+                      >
+                        {labelData.showIcon && (
+                          <span className="text-xl mb-1">
+                            {labelData.icon.emoji}
+                          </span>
+                        )}
+                        <span
+                          className="text-xs font-bold text-center leading-tight"
+                          style={{ color: labelData.textColor }}
+                        >
+                          {labelData.name || 'Your Name'}
+                        </span>
+                      </div>
+                      {/* Small circle */}
+                      <div
+                        className="w-16 h-16 rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-1 transition-all"
+                        style={{
+                          backgroundColor: labelData.backgroundColor,
+                          fontFamily: labelData.font,
+                        }}
+                      >
+                        {labelData.showIcon && (
+                          <span className="text-sm">
+                            {labelData.icon.emoji}
+                          </span>
+                        )}
+                        <span
+                          className="text-[8px] font-bold text-center leading-tight"
+                          style={{ color: labelData.textColor }}
+                        >
+                          {labelData.name || 'Name'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
