@@ -5,29 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Car, Bike, Gamepad2, Heart, Star, Trophy, Crown, Sparkles,
-  Sun, Moon, Flower2, Dog, Cat, Bird, Fish,
-  Palette, Type, Wand2, ArrowLeft
-} from 'lucide-react';
-
-const icons = [
-  { name: 'Car', icon: Car, emoji: '🚗' },
-  { name: 'Bike', icon: Bike, emoji: '🚲' },
-  { name: 'Game', icon: Gamepad2, emoji: '🎮' },
-  { name: 'Heart', icon: Heart, emoji: '❤️' },
-  { name: 'Star', icon: Star, emoji: '⭐' },
-  { name: 'Trophy', icon: Trophy, emoji: '🏆' },
-  { name: 'Crown', icon: Crown, emoji: '👑' },
-  { name: 'Sparkles', icon: Sparkles, emoji: '✨' },
-  { name: 'Sun', icon: Sun, emoji: '☀️' },
-  { name: 'Moon', icon: Moon, emoji: '🌙' },
-  { name: 'Flower', icon: Flower2, emoji: '🌸' },
-  { name: 'Dog', icon: Dog, emoji: '🐶' },
-  { name: 'Cat', icon: Cat, emoji: '🐱' },
-  { name: 'Bird', icon: Bird, emoji: '🐦' },
-  { name: 'Fish', icon: Fish, emoji: '🐠' },
-];
+import { Palette, Type, Wand2, ArrowLeft } from 'lucide-react';
+import { ClipartPicker } from '@/components/ClipartPicker';
 
 const colors = [
   { name: 'Blue', value: '#3B82F6', bg: 'bg-blue-500' },
@@ -58,11 +37,11 @@ const fonts = [
 export default function MixedLabelDesigner() {
   const [labelData, setLabelData] = useState({
     name: '',
-    icon: icons[0],
+    clipart: '🚗',
     textColor: colors[0].value,
     backgroundColor: backgrounds[0].value,
     font: fonts[0].value,
-    showIcon: true,
+    showClipart: true,
   });
 
   const updateLabel = (field: string, value: any) => {
@@ -82,7 +61,7 @@ export default function MixedLabelDesigner() {
         fontFamily: labelData.font,
       }}
     >
-      {labelData.showIcon && <span className="text-sm mb-0.5">{labelData.icon.emoji}</span>}
+      {labelData.showClipart && <span className="text-sm mb-0.5">{labelData.clipart}</span>}
       <span className="text-[8px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
         {labelData.name || 'Name'}
       </span>
@@ -100,7 +79,7 @@ export default function MixedLabelDesigner() {
         fontFamily: labelData.font,
       }}
     >
-      {labelData.showIcon && <span className="text-base mb-1">{labelData.icon.emoji}</span>}
+      {labelData.showClipart && <span className="text-base mb-1">{labelData.clipart}</span>}
       <span className="text-[10px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
         {labelData.name || 'Your Name'}
       </span>
@@ -118,7 +97,7 @@ export default function MixedLabelDesigner() {
         fontFamily: labelData.font,
       }}
     >
-      {labelData.showIcon && <span className="text-base mb-1">{labelData.icon.emoji}</span>}
+      {labelData.showClipart && <span className="text-base mb-1">{labelData.clipart}</span>}
       <span className="text-[10px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
         {labelData.name || 'Your Name'}
       </span>
@@ -160,39 +139,13 @@ export default function MixedLabelDesigner() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-lg font-semibold flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
-                      Choose an Icon
-                    </Label>
-                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                      {icons.map((iconOption) => (
-                        <button
-                          key={iconOption.name}
-                          onClick={() => updateLabel('icon', iconOption)}
-                          className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center text-2xl transition-all hover:scale-110 ${
-                            labelData.icon.name === iconOption.name
-                              ? 'border-primary bg-primary/10 scale-110'
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          {iconOption.emoji}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="showIcon"
-                        checked={labelData.showIcon}
-                        onChange={(e) => updateLabel('showIcon', e.target.checked)}
-                        className="w-5 h-5"
-                      />
-                      <Label htmlFor="showIcon" className="cursor-pointer">
-                        Show icon on label
-                      </Label>
-                    </div>
-                  </div>
+                  {/* Clipart Selection */}
+                  <ClipartPicker
+                    selectedClipart={labelData.clipart}
+                    onSelect={(emoji) => updateLabel('clipart', emoji)}
+                    showClipart={labelData.showClipart}
+                    onToggleShow={(show) => updateLabel('showClipart', show)}
+                  />
 
                   <div className="space-y-2">
                     <Label className="text-lg font-semibold flex items-center gap-2">
@@ -301,4 +254,3 @@ export default function MixedLabelDesigner() {
     </Layout>
   );
 }
-
