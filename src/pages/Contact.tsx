@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
@@ -23,7 +23,6 @@ const contactInfo = [
   { icon: Mail, label: 'Email', value: 'jmurungi2004@gmail.com', href: 'mailto:jmurungi2004@gmail.com' },
   { icon: Phone, label: 'Phone', value: '0770829121', href: 'tel:0770829121' },
   { icon: MapPin, label: 'Address', value: 'Magere-Gayaza', href: '#' },
-  { icon: Clock, label: 'Hours', value: '', href: '#' },
 ];
 
 export default function Contact() {
@@ -79,9 +78,6 @@ export default function Contact() {
             <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6 opacity-0 animate-fade-up">
               Contact <span className="text-gradient-gold">Us</span>
             </h1>
-            <p className="text-lg text-muted-foreground opacity-0 animate-fade-up stagger-1">
-              Have a project in mind? Get in touch and let's create something amazing together.
-            </p>
           </div>
         </div>
       </section>

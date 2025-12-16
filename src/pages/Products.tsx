@@ -19,34 +19,34 @@ const products = [
     id: 2,
     name: 'Square Labels',
     description: 'Great starter pack! Perfect for labeling books, notebooks, and school supplies. Easy to stick and remove!',
-    image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=400&fit=crop',
+    image: '/square-labels.jpg',
     features: ['100+ labels', 'Easy to apply', 'Various sizes', 'Kid-friendly'],
     price: '20,000 UGX',
-    originalPrice: '57,000 UGX',
-    discount: '63% OFF',
+    originalPrice: '',
+    discount: '',
     link: '/designer/square',
   },
   {
     id: 3,
-    name: 'Name Labels Pack - Stick On & Iron On Duo',
+    name: 'Rectangular Labels',
     description: 'The perfect combo! Stick-on labels for books and iron-on labels for uniforms. Two great options in one pack!',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
+    image: '/rectangular-labels.png',
     features: ['Dual purpose', 'Iron-on included', 'Uniform ready', 'Long lasting'],
-    price: '19,000 UGX',
-    originalPrice: '50,000 UGX',
-    discount: '60% OFF',
-    link: '/designer',
+    price: '20,000 UGX',
+    originalPrice: '',
+    discount: '',
+    link: '/designer/rectangular',
   },
   {
     id: 4,
-    name: 'Clothing Name Stamp',
+    name: 'Mixed Labels',
     description: 'A reusable stamp for marking uniforms! Just press and stamp your name directly onto fabric. No need for labels!',
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop',
+    image: '/mixed-labels.jpg',
     features: ['Reusable', 'Direct stamping', 'No labels needed', 'Quick application'],
-    price: '30,000 UGX',
-    originalPrice: '50,000 UGX',
-    discount: 'LIMITED TIME',
-    link: '/designer',
+    price: '20,000 UGX',
+    originalPrice: '',
+    discount: '',
+    link: '/designer/mixed',
   },
 ];
 
@@ -98,30 +98,9 @@ export default function Products() {
                   <h3 className="font-display text-xl font-semibold text-foreground mb-2">
                     {product.name}
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-                  <ul className="space-y-1 mb-4">
-                    {product.features.slice(0, 3).map((feature) => (
-                      <li key={feature} className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
                   <div className="pt-4 border-t border-border space-y-3">
                     <div className="flex items-center gap-3">
-                      {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {product.originalPrice}
-                        </span>
-                      )}
                       <span className="text-primary font-bold text-lg">{product.price}</span>
-                      {product.discount && (
-                        <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-1 rounded">
-                          {product.discount}
-                        </span>
-                      )}
                     </div>
                     <Button variant="gold" size="sm" className="w-full" asChild>
                       <Link to={product.link || '/designer'}>
