@@ -274,8 +274,8 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created. Check your email for a confirmation code.');
           setMode('verify');
+          toast.info('Check your email for a confirmation code.');
         }
       }
     } catch (error) {
