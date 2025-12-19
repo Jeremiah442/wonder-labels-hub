@@ -9,14 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_10px_40px_-10px_hsl(43_74%_49%_/_0.3)] hover:shadow-lg",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-primary/50 bg-transparent text-primary hover:bg-primary/10 hover:border-primary",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        gold: "bg-gradient-to-r from-[hsl(43,74%,49%)] via-[hsl(35,80%,45%)] to-[hsl(43,74%,40%)] text-[hsl(0,0%,5%)] font-semibold shadow-[0_10px_40px_-10px_hsl(43_74%_49%_/_0.3)] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        hero: "bg-gradient-to-r from-[hsl(43,74%,49%)] via-[hsl(35,80%,45%)] to-[hsl(43,74%,40%)] text-[hsl(0,0%,5%)] font-semibold text-base shadow-[0_10px_40px_-10px_hsl(43_74%_49%_/_0.3)] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        gold: "bg-[image:var(--gradient-gold)] text-primary-foreground font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        hero: "bg-[image:var(--gradient-gold)] text-primary-foreground font-semibold text-base shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
         "outline-gold": "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground font-semibold",
         "ghost-gold": "text-primary hover:bg-primary/10 hover:text-primary",
       },

@@ -63,14 +63,6 @@ export default function Products() {
             <p className="text-lg text-muted-foreground opacity-0 animate-fade-up stagger-1">
               Fun and colorful labels to help kids keep track of their school items! Design your own personalized labels! 🎨
             </p>
-            <div className="mt-6 opacity-0 animate-fade-up stagger-2">
-              <Button variant="gold" size="lg" asChild>
-                <Link to="/designer">
-                  Start Designing Your Label
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
-            </div>
           </div>
         </div>
       </section>

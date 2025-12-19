@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/maestro-asset": {
+        target: "https://maestro.onlinelabels.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/maestro-asset/, ""),
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

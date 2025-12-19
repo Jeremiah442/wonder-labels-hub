@@ -5,50 +5,225 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Palette, Type, Wand2, ArrowLeft } from 'lucide-react';
-import { ClipartPicker } from '@/components/ClipartPicker';
+import { Palette, Type, Wand2 } from 'lucide-react';
+import { ImagePicker } from '@/components/ImagePicker';
+import { DesignerWorkspace } from '@/components/designer/DesignerWorkspace';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCart } from '@/lib/cart';
 
-const colors = [
-  { name: 'Blue', value: '#3B82F6', bg: 'bg-blue-500' },
-  { name: 'Green', value: '#10B981', bg: 'bg-green-500' },
-  { name: 'Pink', value: '#EC4899', bg: 'bg-pink-500' },
-  { name: 'Purple', value: '#A855F7', bg: 'bg-purple-500' },
-  { name: 'Orange', value: '#F97316', bg: 'bg-orange-500' },
-  { name: 'Yellow', value: '#EAB308', bg: 'bg-yellow-500' },
-  { name: 'Red', value: '#EF4444', bg: 'bg-red-500' },
-  { name: 'Teal', value: '#14B8A6', bg: 'bg-teal-500' },
+const fontColors = [
+  { name: 'Maroon', value: '#7f1d1d' },
+  { name: 'Brown', value: '#78350f' },
+  { name: 'Gold', value: '#a16207' },
+  { name: 'Dark Green', value: '#166534' },
+  { name: 'Blue', value: '#1d4ed8' },
+  { name: 'Navy', value: '#1e3a8a' },
+  { name: 'Purple', value: '#5b21b6' },
+  { name: 'Burgundy', value: '#701a75' },
+
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Peach', value: '#fb923c' },
+  { name: 'Yellow', value: '#facc15' },
+  { name: 'Light Green', value: '#86efac' },
+  { name: 'Light Cyan', value: '#67e8f9' },
+  { name: 'Periwinkle', value: '#93c5fd' },
+  { name: 'Lavender', value: '#c4b5fd' },
+  { name: 'Pink', value: '#f9a8d4' },
+
+  { name: 'Light Pink', value: '#fecaca' },
+  { name: 'Sand', value: '#fed7aa' },
+  { name: 'Light Yellow', value: '#fef08a' },
+  { name: 'Mint', value: '#bbf7d0' },
+  { name: 'Pale Cyan', value: '#cffafe' },
+  { name: 'Pale Blue', value: '#dbeafe' },
+  { name: 'Pale Purple', value: '#e9d5ff' },
+  { name: 'Pale Pink', value: '#fce7f3' },
+
+  { name: 'Bright Red', value: '#dc2626' },
+  { name: 'Bright Orange', value: '#f97316' },
+  { name: 'Bright Yellow', value: '#fde047' },
+  { name: 'Lime', value: '#84cc16' },
+  { name: 'Aqua', value: '#22d3ee' },
+  { name: 'Bright Blue', value: '#2563eb' },
+  { name: 'Violet', value: '#7c3aed' },
+  { name: 'Magenta', value: '#d946ef' },
+
+  { name: 'Black', value: '#000000' },
+  { name: 'Dark Gray', value: '#374151' },
+  { name: 'Gray', value: '#6b7280' },
+  { name: 'Light Gray', value: '#d1d5db' },
+  { name: 'White', value: '#ffffff' },
+  { name: 'None', value: 'transparent' },
 ];
 
 const backgrounds = [
-  { name: 'White', value: '#FFFFFF', bg: 'bg-white' },
-  { name: 'Light Blue', value: '#DBEAFE', bg: 'bg-blue-100' },
-  { name: 'Light Green', value: '#D1FAE5', bg: 'bg-green-100' },
-  { name: 'Light Pink', value: '#FCE7F3', bg: 'bg-pink-100' },
-  { name: 'Light Yellow', value: '#FEF3C7', bg: 'bg-yellow-100' },
+  { name: 'Maroon', value: '#7f1d1d', bg: '' },
+  { name: 'Brown', value: '#78350f', bg: '' },
+  { name: 'Gold', value: '#a16207', bg: '' },
+  { name: 'Dark Green', value: '#166534', bg: '' },
+  { name: 'Blue', value: '#1d4ed8', bg: '' },
+  { name: 'Navy', value: '#1e3a8a', bg: '' },
+  { name: 'Purple', value: '#5b21b6', bg: '' },
+  { name: 'Burgundy', value: '#701a75', bg: '' },
+
+  { name: 'Red', value: '#ef4444', bg: '' },
+  { name: 'Peach', value: '#fb923c', bg: '' },
+  { name: 'Yellow', value: '#facc15', bg: '' },
+  { name: 'Light Green', value: '#86efac', bg: '' },
+  { name: 'Light Cyan', value: '#67e8f9', bg: '' },
+  { name: 'Periwinkle', value: '#93c5fd', bg: '' },
+  { name: 'Lavender', value: '#c4b5fd', bg: '' },
+  { name: 'Pink', value: '#f9a8d4', bg: '' },
+
+  { name: 'Light Pink', value: '#fecaca', bg: '' },
+  { name: 'Sand', value: '#fed7aa', bg: '' },
+  { name: 'Light Yellow', value: '#fef08a', bg: '' },
+  { name: 'Mint', value: '#bbf7d0', bg: '' },
+  { name: 'Pale Cyan', value: '#cffafe', bg: '' },
+  { name: 'Pale Blue', value: '#dbeafe', bg: '' },
+  { name: 'Pale Purple', value: '#e9d5ff', bg: '' },
+  { name: 'Pale Pink', value: '#fce7f3', bg: '' },
+
+  { name: 'Bright Red', value: '#dc2626', bg: '' },
+  { name: 'Bright Orange', value: '#f97316', bg: '' },
+  { name: 'Bright Yellow', value: '#fde047', bg: '' },
+  { name: 'Lime', value: '#84cc16', bg: '' },
+  { name: 'Aqua', value: '#22d3ee', bg: '' },
+  { name: 'Bright Blue', value: '#2563eb', bg: '' },
+  { name: 'Violet', value: '#7c3aed', bg: '' },
+  { name: 'Magenta', value: '#d946ef', bg: '' },
+
+  { name: 'Black', value: '#000000', bg: '' },
+  { name: 'Dark Gray', value: '#374151', bg: '' },
+  { name: 'Gray', value: '#6b7280', bg: '' },
+  { name: 'Light Gray', value: '#d1d5db', bg: '' },
+  { name: 'White', value: '#ffffff', bg: '' },
+  { name: 'None', value: 'transparent', bg: '' },
 ];
 
 const fonts = [
-  { name: 'Fun', value: 'Comic Sans MS, cursive' },
-  { name: 'Bold', value: 'Arial Black, sans-serif' },
-  { name: 'Round', value: 'Nunito, sans-serif' },
-  { name: 'Scribble', value: 'Kalam, cursive' },
+  { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
+  { name: 'Arial Black', value: 'Arial Black, Arial, sans-serif' },
+  { name: 'Calibri', value: 'Calibri, Arial, sans-serif' },
+  { name: 'Cambria', value: 'Cambria, Georgia, serif' },
+  { name: 'Candara', value: 'Candara, Calibri, Arial, sans-serif' },
+  { name: 'Century Gothic', value: '"Century Gothic", "Segoe UI", Arial, sans-serif' },
+  { name: 'Comic Sans MS', value: '"Comic Sans MS", cursive' },
+  { name: 'Consolas', value: 'Consolas, "Courier New", monospace' },
+  { name: 'Courier New', value: '"Courier New", Courier, monospace' },
+  { name: 'Franklin Gothic', value: '"Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif' },
+  { name: 'Garamond', value: 'Garamond, "Times New Roman", serif' },
+  { name: 'Georgia', value: 'Georgia, "Times New Roman", serif' },
+  { name: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+  { name: 'Impact', value: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif' },
+  { name: 'Lucida Console', value: '"Lucida Console", Monaco, monospace' },
+  { name: 'Lucida Sans', value: '"Lucida Sans Unicode", "Lucida Grande", sans-serif' },
+  { name: 'Palatino', value: '"Palatino Linotype", Palatino, serif' },
+  { name: 'Segoe UI', value: '"Segoe UI", Tahoma, Arial, sans-serif' },
+  { name: 'Tahoma', value: 'Tahoma, "Segoe UI", Arial, sans-serif' },
+  { name: 'Times New Roman', value: '"Times New Roman", Times, serif' },
+  { name: 'Trebuchet MS', value: '"Trebuchet MS", "Segoe UI", Arial, sans-serif' },
+  { name: 'Verdana', value: 'Verdana, Geneva, Tahoma, sans-serif' },
+  { name: 'Brush Script MT', value: '"Brush Script MT", "Segoe Script", cursive' },
+  { name: 'Segoe Script', value: '"Segoe Script", "Brush Script MT", cursive' },
+  { name: 'Segoe Print', value: '"Segoe Print", "Comic Sans MS", cursive' },
+  { name: 'Bookman', value: '"Bookman Old Style", Bookman, serif' },
+  { name: 'Rockwell', value: 'Rockwell, "Courier Bold", serif' },
+  { name: 'Copperplate', value: 'Copperplate, "Copperplate Gothic Light", fantasy' },
+  { name: 'Inter', value: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' },
+  { name: 'Open Sans', value: '"Open Sans", Arial, sans-serif' },
+  { name: 'Roboto', value: 'Roboto, "Segoe UI", Arial, sans-serif' },
+  { name: 'Montserrat', value: 'Montserrat, Arial, sans-serif' },
+  { name: 'Lato', value: 'Lato, Arial, sans-serif' },
+  { name: 'Poppins', value: 'Poppins, Arial, sans-serif' },
+  { name: 'Oswald', value: 'Oswald, Arial, sans-serif' },
+  { name: 'Raleway', value: 'Raleway, Arial, sans-serif' },
+  { name: 'Merriweather', value: 'Merriweather, Georgia, serif' },
+  { name: 'Playfair Display', value: '"Playfair Display", Georgia, serif' },
+  { name: 'Roboto Slab', value: '"Roboto Slab", Georgia, serif' },
+  { name: 'Fira Sans', value: '"Fira Sans", Arial, sans-serif' },
+  { name: 'Source Sans 3', value: '"Source Sans 3", Arial, sans-serif' },
+  { name: 'PT Sans', value: '"PT Sans", Arial, sans-serif' },
+  { name: 'PT Serif', value: '"PT Serif", Georgia, serif' },
+  { name: 'Ubuntu', value: 'Ubuntu, Arial, sans-serif' },
+  { name: 'Cabin', value: 'Cabin, Arial, sans-serif' },
+  { name: 'Quicksand', value: 'Quicksand, Arial, sans-serif' },
+  { name: 'Comfortaa', value: 'Comfortaa, Arial, sans-serif' },
+  { name: 'Nunito', value: 'Nunito, Arial, sans-serif' },
+  { name: 'Kalam', value: 'Kalam, cursive' },
+  { name: 'Courgette', value: 'Courgette, cursive' },
+  { name: 'Pacifico', value: 'Pacifico, cursive' },
+  { name: 'Lobster', value: 'Lobster, cursive' },
+  { name: 'Dancing Script', value: '"Dancing Script", cursive' },
+  { name: 'Great Vibes', value: '"Great Vibes", cursive' },
+  { name: 'Patrick Hand', value: '"Patrick Hand", cursive' },
+  { name: 'Passero One', value: '"Passero One", cursive' },
+  { name: 'Permanent Marker', value: '"Permanent Marker", cursive' },
+  { name: 'System UI', value: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' },
 ];
 
 export default function MixedLabelDesigner() {
   const [labelData, setLabelData] = useState({
-    name: '',
-    clipart: '🚗',
-    textColor: colors[0].value,
-    backgroundColor: backgrounds[0].value,
+    firstName: '',
+    lastName: '',
+    imageUrl: '',
+    imageSize: 24,
+    textColor: fontColors[0].value,
+    backgroundColor: 'transparent',
     font: fonts[0].value,
-    showClipart: true,
+    fontSize: 12,
+    bold: false,
+    italic: false,
+    underline: false,
   });
+
+  const [previewFont, setPreviewFont] = useState<string | null>(null);
+
+  const imageIsUrl =
+    labelData.imageUrl?.startsWith('http') ||
+    labelData.imageUrl?.startsWith('data:') ||
+    labelData.imageUrl?.startsWith('/') ||
+    labelData.imageUrl?.startsWith('blob:');
 
   const updateLabel = (field: string, value: any) => {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
+  const selectedFontName = fonts.find((f) => f.value === labelData.font)?.name ?? 'Font';
+  const canvasFont = previewFont ?? labelData.font;
+
+  const resetTextFormatting = () => {
+    setLabelData((prev) => ({
+      ...prev,
+      font: fonts[0].value,
+      fontSize: 12,
+      bold: false,
+      italic: false,
+      underline: false,
+    }));
+  };
+
   const navigate = useNavigate();
+  const { addItem } = useCart();
+
+  const addToCart = () => {
+    addItem({
+      productType: 'mixed',
+      title: 'Mixed Labels',
+      unitPriceUGX: 20000,
+      quantity: 1,
+      design: {
+        ...labelData,
+      },
+    });
+    navigate('/cart');
+  };
+
+  const fontSizeFor = (h: string) => {
+    if (h === '1cm') return Math.max(6, Math.round(labelData.fontSize * 0.7));
+    if (h === '0.5cm') return Math.max(6, Math.round(labelData.fontSize * 0.6));
+    return labelData.fontSize;
+  };
 
   const renderRect = (w: string, h: string, key: string) => (
     <div
@@ -58,13 +233,52 @@ export default function MixedLabelDesigner() {
         width: w,
         height: h,
         backgroundColor: labelData.backgroundColor,
-        fontFamily: labelData.font,
+        fontFamily: canvasFont,
       }}
     >
-      {labelData.showClipart && <span className="text-sm mb-0.5">{labelData.clipart}</span>}
-      <span className="text-[8px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
-        {labelData.name || 'Name'}
-      </span>
+      {labelData.imageUrl && imageIsUrl ? (
+        <img
+          src={labelData.imageUrl}
+          alt="Selected image"
+          className="mb-0.5 object-contain"
+          style={{ width: Math.max(8, Math.round(labelData.imageSize * 0.7)), height: Math.max(8, Math.round(labelData.imageSize * 0.7)) }}
+          draggable={false}
+        />
+      ) : null}
+
+      {!!labelData.firstName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: fontSizeFor(h),
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.firstName}
+        </span>
+      )}
+
+      {!!labelData.lastName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: fontSizeFor(h),
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.lastName}
+        </span>
+      )}
     </div>
   );
 
@@ -76,84 +290,175 @@ export default function MixedLabelDesigner() {
         width: size,
         height: size,
         backgroundColor: labelData.backgroundColor,
-        fontFamily: labelData.font,
+        fontFamily: canvasFont,
       }}
     >
-      {labelData.showClipart && <span className="text-base mb-1">{labelData.clipart}</span>}
-      <span className="text-[10px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
-        {labelData.name || 'Your Name'}
-      </span>
+      {labelData.imageUrl && imageIsUrl ? (
+        <img
+          src={labelData.imageUrl}
+          alt="Selected image"
+          className="mb-1 object-contain"
+          style={{ width: labelData.imageSize, height: labelData.imageSize }}
+          draggable={false}
+        />
+      ) : null}
+
+      {!!labelData.firstName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: labelData.fontSize,
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.firstName}
+        </span>
+      )}
+
+      {!!labelData.lastName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: labelData.fontSize,
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.lastName}
+        </span>
+      )}
     </div>
   );
 
   const renderCircle = (diameter: string, key: string) => (
     <div
       key={key}
-      className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-full"
+      className="relative border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-full"
       style={{
         width: diameter,
         height: diameter,
         backgroundColor: labelData.backgroundColor,
-        fontFamily: labelData.font,
+        fontFamily: canvasFont,
       }}
     >
-      {labelData.showClipart && <span className="text-base mb-1">{labelData.clipart}</span>}
-      <span className="text-[10px] font-bold text-center leading-tight" style={{ color: labelData.textColor }}>
-        {labelData.name || 'Your Name'}
-      </span>
+      {labelData.imageUrl && imageIsUrl ? (
+        <img
+          src={labelData.imageUrl}
+          alt="Selected image"
+          className="mb-1 object-contain"
+          style={{ width: labelData.imageSize, height: labelData.imageSize }}
+          draggable={false}
+        />
+      ) : null}
+
+      {!!labelData.firstName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: labelData.fontSize,
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.firstName}
+        </span>
+      )}
+
+      {!!labelData.lastName && (
+        <span
+          className="leading-tight"
+          style={{
+            color: labelData.textColor,
+            fontSize: labelData.fontSize,
+            fontWeight: labelData.bold ? 700 : 400,
+            fontStyle: labelData.italic ? 'italic' : 'normal',
+            textDecoration: labelData.underline ? 'underline' : 'none',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {labelData.lastName}
+        </span>
+      )}
     </div>
   );
 
   return (
     <Layout>
-      <section className="py-8 md:py-12">
-        <div className="container px-4">
-          <Button variant="ghost" onClick={() => navigate('/products')} className="mb-4 gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <div className="text-center mb-8">
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Design Your <span className="text-gradient-gold">Mixed Labels</span>
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Preview includes rectangles, squares, and circles.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <Card className="border-2 border-primary/20">
-                <CardContent className="p-6 space-y-6">
+      <DesignerWorkspace
+        onBack={() => (window.history.length > 1 ? navigate(-1) : navigate('/products'))}
+        sidebar={
+          <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-lg font-semibold flex items-center gap-2">
+                    <Label htmlFor="firstName" className="text-lg font-semibold flex items-center gap-2">
                       <Type className="w-5 h-5 text-primary" />
-                      Your Name
+                      First Name
                     </Label>
                     <Input
-                      id="name"
-                      value={labelData.name}
-                      onChange={(e) => updateLabel('name', e.target.value)}
+                      id="firstName"
+                      value={labelData.firstName}
+                      onChange={(e) => updateLabel('firstName', e.target.value)}
                       className="text-lg"
-                      placeholder="Enter your name"
+                      placeholder="Enter first name"
                     />
                   </div>
 
-                  {/* Clipart Selection */}
-                  <ClipartPicker
-                    selectedClipart={labelData.clipart}
-                    onSelect={(emoji) => updateLabel('clipart', emoji)}
-                    showClipart={labelData.showClipart}
-                    onToggleShow={(show) => updateLabel('showClipart', show)}
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-lg font-semibold flex items-center gap-2">
+                      <Type className="w-5 h-5 text-primary" />
+                      Last Name
+                    </Label>
+                    <Input
+                      id="lastName"
+                      value={labelData.lastName}
+                      onChange={(e) => updateLabel('lastName', e.target.value)}
+                      className="text-lg"
+                      placeholder="Enter last name"
+                    />
+                  </div>
+
+                  <ImagePicker
+                    selectedImageUrl={labelData.imageUrl}
+                    onSelect={(url) => updateLabel('imageUrl', url)}
                   />
 
                   <div className="space-y-2">
                     <Label className="text-lg font-semibold flex items-center gap-2">
+                      <Type className="w-5 h-5 text-primary" />
+                      Image Size
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={8}
+                        max={96}
+                        value={labelData.imageSize}
+                        onChange={(e) => updateLabel('imageSize', Number(e.target.value) || 24)}
+                      />
+                      <span className="text-sm text-muted-foreground w-10 text-right">px</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold flex items-center gap-2">
                       <Palette className="w-5 h-5 text-primary" />
-                      Text Color
+                      Font Color
                     </Label>
                     <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                      {colors.map((color) => (
+                      {fontColors.map((color) => (
                         <button
                           key={color.name}
                           onClick={() => updateLabel('textColor', color.value)}
@@ -161,8 +466,13 @@ export default function MixedLabelDesigner() {
                             labelData.textColor === color.value
                               ? 'border-primary scale-110 ring-2 ring-primary ring-offset-2'
                               : 'border-border hover:border-primary/50'
-                          } ${color.bg}`}
-                          style={{ backgroundColor: color.value }}
+                          }`}
+                          style={{
+                            background:
+                              color.value === 'transparent'
+                                ? 'linear-gradient(135deg, transparent 44%, #ef4444 44%, #ef4444 56%, transparent 56%), #ffffff'
+                                : color.value,
+                          }}
                         />
                       ))}
                     </div>
@@ -194,63 +504,118 @@ export default function MixedLabelDesigner() {
                       <Type className="w-5 h-5 text-primary" />
                       Font Style
                     </Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {fonts.map((font) => (
-                        <button
-                          key={font.name}
-                          onClick={() => updateLabel('font', font.value)}
-                          className={`px-4 py-2 rounded-lg border-2 text-left transition-all ${
-                            labelData.font === font.value
-                              ? 'border-primary bg-primary/10'
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                          style={{ fontFamily: font.value }}
-                        >
-                          {font.name}
-                        </button>
-                      ))}
-                    </div>
+                    <Select value={labelData.font} onValueChange={(v) => updateLabel('font', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={selectedFontName} />
+                      </SelectTrigger>
+                      <SelectContent onMouseLeave={() => setPreviewFont(null)}>
+                        {fonts.map((font) => (
+                          <SelectItem
+                            key={font.name}
+                            value={font.value}
+                            onMouseEnter={() => setPreviewFont(font.value)}
+                          >
+                            <span style={{ fontFamily: font.value }}>{font.name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
 
-            <div className="space-y-6">
-              <Card className="border-2 border-primary/20 sticky top-24">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-bold mb-4 text-center">Preview</h2>
-                  <div className="flex flex-col items-center justify-center gap-3 p-2">
-                    {[...Array(4)].map((_, row) => (
-                      <div key={`row-rect5x1-${row}`} className="flex items-center justify-center gap-2">
-                        {[...Array(4)].map((_, i) => renderRect('5cm', '1cm', `rect5x1-${row}-${i}`))}
-                      </div>
-                    ))}
-                    {[...Array(2)].map((_, row) => (
-                      <div key={`row-rect4_5x0_5-${row}`} className="flex items-center justify-center gap-2">
-                        {[...Array(4)].map((_, i) => renderRect('4.5cm', '0.5cm', `rect4_5x0_5-${row}-${i}`))}
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-center gap-2">
-                      {[...Array(7)].map((_, i) => renderSquare('2.5cm', `square-2_5-${i}`))}
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      {[...Array(7)].map((_, i) => renderCircle('2.5cm', `circle-2_5-${i}`))}
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold flex items-center gap-2">
+                      <Type className="w-5 h-5 text-primary" />
+                      Font Size
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={6}
+                        max={72}
+                        value={labelData.fontSize}
+                        onChange={(e) => updateLabel('fontSize', Number(e.target.value) || 12)}
+                      />
+                      <span className="text-sm text-muted-foreground w-10 text-right">px</span>
                     </div>
                   </div>
 
-                  {labelData.name && (
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <Button variant="gold" size="lg" className="w-full">
-                        Add to Cart
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold flex items-center gap-2">
+                      <Type className="w-5 h-5 text-primary" />
+                      Text Style
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      <Button
+                        type="button"
+                        variant={labelData.bold ? 'secondary' : 'outline'}
+                        onClick={() => updateLabel('bold', !labelData.bold)}
+                      >
+                        B
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={labelData.italic ? 'secondary' : 'outline'}
+                        onClick={() => updateLabel('italic', !labelData.italic)}
+                        className="italic"
+                      >
+                        I
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={labelData.underline ? 'secondary' : 'outline'}
+                        onClick={() => updateLabel('underline', !labelData.underline)}
+                        className="underline"
+                      >
+                        U
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={resetTextFormatting}
+                      >
+                        Reset
                       </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  </div>
           </div>
-        </div>
-      </section>
+        }
+        canvas={
+          <Card className="border-2 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center justify-center gap-3 p-2">
+                {[...Array(4)].map((_, row) => (
+                  <div key={`row-rect5x1-${row}`} className="flex items-center justify-center gap-2">
+                    {[...Array(4)].map((_, i) => renderRect('5cm', '1cm', `rect5x1-${row}-${i}`))}
+                  </div>
+                ))}
+                {[...Array(2)].map((_, row) => (
+                  <div key={`row-rect4_5x0_5-${row}`} className="flex items-center justify-center gap-2">
+                    {[...Array(4)].map((_, i) => renderRect('4.5cm', '0.5cm', `rect4_5x0_5-${row}-${i}`))}
+                  </div>
+                ))}
+                <div className="flex items-center justify-center gap-2">
+                  {[...Array(7)].map((_, i) => renderSquare('2.5cm', `square-2_5-${i}`))}
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  {[...Array(7)].map((_, i) => renderCircle('2.5cm', `circle-2_5-${i}`))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-border">
+                <Button
+                  variant="gold"
+                  size="lg"
+                  className="w-full"
+                  onClick={addToCart}
+                  disabled={!labelData.firstName && !labelData.lastName}
+                >
+                  Add to Cart
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        }
+      />
     </Layout>
   );
 }

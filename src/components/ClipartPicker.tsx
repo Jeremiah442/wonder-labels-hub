@@ -1,504 +1,241 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 
-// Comprehensive clipart library organized by categories
-const clipartLibrary = {
-  animals: [
-    { id: 'cat', emoji: '🐱', name: 'Cat' },
-    { id: 'dog', emoji: '🐶', name: 'Dog' },
-    { id: 'rabbit', emoji: '🐰', name: 'Rabbit' },
-    { id: 'bear', emoji: '🐻', name: 'Bear' },
-    { id: 'panda', emoji: '🐼', name: 'Panda' },
-    { id: 'koala', emoji: '🐨', name: 'Koala' },
-    { id: 'tiger', emoji: '🐯', name: 'Tiger' },
-    { id: 'lion', emoji: '🦁', name: 'Lion' },
-    { id: 'cow', emoji: '🐮', name: 'Cow' },
-    { id: 'pig', emoji: '🐷', name: 'Pig' },
-    { id: 'frog', emoji: '🐸', name: 'Frog' },
-    { id: 'monkey', emoji: '🐵', name: 'Monkey' },
-    { id: 'chicken', emoji: '🐔', name: 'Chicken' },
-    { id: 'penguin', emoji: '🐧', name: 'Penguin' },
-    { id: 'bird', emoji: '🐦', name: 'Bird' },
-    { id: 'duck', emoji: '🦆', name: 'Duck' },
-    { id: 'owl', emoji: '🦉', name: 'Owl' },
-    { id: 'butterfly', emoji: '🦋', name: 'Butterfly' },
-    { id: 'bee', emoji: '🐝', name: 'Bee' },
-    { id: 'ladybug', emoji: '🐞', name: 'Ladybug' },
-    { id: 'turtle', emoji: '🐢', name: 'Turtle' },
-    { id: 'snake', emoji: '🐍', name: 'Snake' },
-    { id: 'dolphin', emoji: '🐬', name: 'Dolphin' },
-    { id: 'whale', emoji: '🐳', name: 'Whale' },
-    { id: 'fish', emoji: '🐟', name: 'Fish' },
-    { id: 'octopus', emoji: '🐙', name: 'Octopus' },
-    { id: 'crab', emoji: '🦀', name: 'Crab' },
-    { id: 'unicorn', emoji: '🦄', name: 'Unicorn' },
-    { id: 'horse', emoji: '🐴', name: 'Horse' },
-    { id: 'deer', emoji: '🦌', name: 'Deer' },
-    { id: 'elephant', emoji: '🐘', name: 'Elephant' },
-    { id: 'giraffe', emoji: '🦒', name: 'Giraffe' },
-    { id: 'zebra', emoji: '🦓', name: 'Zebra' },
-    { id: 'gorilla', emoji: '🦍', name: 'Gorilla' },
-    { id: 'fox', emoji: '🦊', name: 'Fox' },
-    { id: 'wolf', emoji: '🐺', name: 'Wolf' },
-    { id: 'hamster', emoji: '🐹', name: 'Hamster' },
-    { id: 'mouse', emoji: '🐭', name: 'Mouse' },
-    { id: 'hedgehog', emoji: '🦔', name: 'Hedgehog' },
-    { id: 'bat', emoji: '🦇', name: 'Bat' },
-  ],
-  food: [
-    { id: 'apple', emoji: '🍎', name: 'Apple' },
-    { id: 'green_apple', emoji: '🍏', name: 'Green Apple' },
-    { id: 'banana', emoji: '🍌', name: 'Banana' },
-    { id: 'orange', emoji: '🍊', name: 'Orange' },
-    { id: 'lemon', emoji: '🍋', name: 'Lemon' },
-    { id: 'grape', emoji: '🍇', name: 'Grapes' },
-    { id: 'watermelon', emoji: '🍉', name: 'Watermelon' },
-    { id: 'strawberry', emoji: '🍓', name: 'Strawberry' },
-    { id: 'cherry', emoji: '🍒', name: 'Cherry' },
-    { id: 'peach', emoji: '🍑', name: 'Peach' },
-    { id: 'pineapple', emoji: '🍍', name: 'Pineapple' },
-    { id: 'mango', emoji: '🥭', name: 'Mango' },
-    { id: 'coconut', emoji: '🥥', name: 'Coconut' },
-    { id: 'avocado', emoji: '🥑', name: 'Avocado' },
-    { id: 'carrot', emoji: '🥕', name: 'Carrot' },
-    { id: 'corn', emoji: '🌽', name: 'Corn' },
-    { id: 'broccoli', emoji: '🥦', name: 'Broccoli' },
-    { id: 'tomato', emoji: '🍅', name: 'Tomato' },
-    { id: 'pizza', emoji: '🍕', name: 'Pizza' },
-    { id: 'burger', emoji: '🍔', name: 'Burger' },
-    { id: 'fries', emoji: '🍟', name: 'Fries' },
-    { id: 'hotdog', emoji: '🌭', name: 'Hot Dog' },
-    { id: 'taco', emoji: '🌮', name: 'Taco' },
-    { id: 'burrito', emoji: '🌯', name: 'Burrito' },
-    { id: 'sandwich', emoji: '🥪', name: 'Sandwich' },
-    { id: 'donut', emoji: '🍩', name: 'Donut' },
-    { id: 'cookie', emoji: '🍪', name: 'Cookie' },
-    { id: 'cake', emoji: '🎂', name: 'Birthday Cake' },
-    { id: 'cupcake', emoji: '🧁', name: 'Cupcake' },
-    { id: 'ice_cream', emoji: '🍦', name: 'Ice Cream' },
-    { id: 'candy', emoji: '🍬', name: 'Candy' },
-    { id: 'lollipop', emoji: '🍭', name: 'Lollipop' },
-    { id: 'chocolate', emoji: '🍫', name: 'Chocolate' },
-    { id: 'popcorn', emoji: '🍿', name: 'Popcorn' },
-    { id: 'coffee', emoji: '☕', name: 'Coffee' },
-    { id: 'tea', emoji: '🍵', name: 'Tea' },
-    { id: 'juice', emoji: '🧃', name: 'Juice Box' },
-    { id: 'milk', emoji: '🥛', name: 'Milk' },
-    { id: 'egg', emoji: '🥚', name: 'Egg' },
-    { id: 'bread', emoji: '🍞', name: 'Bread' },
-  ],
-  nature: [
-    { id: 'sun', emoji: '☀️', name: 'Sun' },
-    { id: 'moon', emoji: '🌙', name: 'Moon' },
-    { id: 'star', emoji: '⭐', name: 'Star' },
-    { id: 'sparkles', emoji: '✨', name: 'Sparkles' },
-    { id: 'rainbow', emoji: '🌈', name: 'Rainbow' },
-    { id: 'cloud', emoji: '☁️', name: 'Cloud' },
-    { id: 'rain', emoji: '🌧️', name: 'Rain' },
-    { id: 'snow', emoji: '❄️', name: 'Snowflake' },
-    { id: 'lightning', emoji: '⚡', name: 'Lightning' },
-    { id: 'fire', emoji: '🔥', name: 'Fire' },
-    { id: 'droplet', emoji: '💧', name: 'Water Drop' },
-    { id: 'wave', emoji: '🌊', name: 'Wave' },
-    { id: 'flower', emoji: '🌸', name: 'Cherry Blossom' },
-    { id: 'rose', emoji: '🌹', name: 'Rose' },
-    { id: 'tulip', emoji: '🌷', name: 'Tulip' },
-    { id: 'sunflower', emoji: '🌻', name: 'Sunflower' },
-    { id: 'hibiscus', emoji: '🌺', name: 'Hibiscus' },
-    { id: 'bouquet', emoji: '💐', name: 'Bouquet' },
-    { id: 'tree', emoji: '🌳', name: 'Tree' },
-    { id: 'palm', emoji: '🌴', name: 'Palm Tree' },
-    { id: 'cactus', emoji: '🌵', name: 'Cactus' },
-    { id: 'clover', emoji: '🍀', name: 'Four Leaf Clover' },
-    { id: 'leaf', emoji: '🍃', name: 'Leaf' },
-    { id: 'maple', emoji: '🍁', name: 'Maple Leaf' },
-    { id: 'mushroom', emoji: '🍄', name: 'Mushroom' },
-    { id: 'seedling', emoji: '🌱', name: 'Seedling' },
-    { id: 'earth', emoji: '🌍', name: 'Earth' },
-    { id: 'mountain', emoji: '🏔️', name: 'Mountain' },
-    { id: 'volcano', emoji: '🌋', name: 'Volcano' },
-    { id: 'desert', emoji: '🏜️', name: 'Desert' },
-  ],
-  sports: [
-    { id: 'soccer', emoji: '⚽', name: 'Soccer' },
-    { id: 'basketball', emoji: '🏀', name: 'Basketball' },
-    { id: 'football', emoji: '🏈', name: 'Football' },
-    { id: 'baseball', emoji: '⚾', name: 'Baseball' },
-    { id: 'tennis', emoji: '🎾', name: 'Tennis' },
-    { id: 'volleyball', emoji: '🏐', name: 'Volleyball' },
-    { id: 'rugby', emoji: '🏉', name: 'Rugby' },
-    { id: 'golf', emoji: '⛳', name: 'Golf' },
-    { id: 'hockey', emoji: '🏒', name: 'Ice Hockey' },
-    { id: 'cricket', emoji: '🏏', name: 'Cricket' },
-    { id: 'badminton', emoji: '🏸', name: 'Badminton' },
-    { id: 'ping_pong', emoji: '🏓', name: 'Ping Pong' },
-    { id: 'boxing', emoji: '🥊', name: 'Boxing' },
-    { id: 'martial_arts', emoji: '🥋', name: 'Martial Arts' },
-    { id: 'swimming', emoji: '🏊', name: 'Swimming' },
-    { id: 'surfing', emoji: '🏄', name: 'Surfing' },
-    { id: 'skiing', emoji: '⛷️', name: 'Skiing' },
-    { id: 'snowboard', emoji: '🏂', name: 'Snowboarding' },
-    { id: 'skating', emoji: '⛸️', name: 'Ice Skating' },
-    { id: 'cycling', emoji: '🚴', name: 'Cycling' },
-    { id: 'running', emoji: '🏃', name: 'Running' },
-    { id: 'gymnastics', emoji: '🤸', name: 'Gymnastics' },
-    { id: 'weightlifting', emoji: '🏋️', name: 'Weightlifting' },
-    { id: 'trophy', emoji: '🏆', name: 'Trophy' },
-    { id: 'medal', emoji: '🥇', name: 'Gold Medal' },
-    { id: 'silver_medal', emoji: '🥈', name: 'Silver Medal' },
-    { id: 'bronze_medal', emoji: '🥉', name: 'Bronze Medal' },
-    { id: 'dart', emoji: '🎯', name: 'Dart' },
-    { id: 'bowling', emoji: '🎳', name: 'Bowling' },
-    { id: 'fishing', emoji: '🎣', name: 'Fishing' },
-  ],
-  symbols: [
-    { id: 'heart', emoji: '❤️', name: 'Red Heart' },
-    { id: 'orange_heart', emoji: '🧡', name: 'Orange Heart' },
-    { id: 'yellow_heart', emoji: '💛', name: 'Yellow Heart' },
-    { id: 'green_heart', emoji: '💚', name: 'Green Heart' },
-    { id: 'blue_heart', emoji: '💙', name: 'Blue Heart' },
-    { id: 'purple_heart', emoji: '💜', name: 'Purple Heart' },
-    { id: 'pink_heart', emoji: '💗', name: 'Pink Heart' },
-    { id: 'sparkling_heart', emoji: '💖', name: 'Sparkling Heart' },
-    { id: 'two_hearts', emoji: '💕', name: 'Two Hearts' },
-    { id: 'peace', emoji: '☮️', name: 'Peace' },
-    { id: 'check', emoji: '✅', name: 'Check Mark' },
-    { id: 'cross', emoji: '❌', name: 'Cross Mark' },
-    { id: 'warning', emoji: '⚠️', name: 'Warning' },
-    { id: 'question', emoji: '❓', name: 'Question' },
-    { id: 'exclamation', emoji: '❗', name: 'Exclamation' },
-    { id: 'infinity', emoji: '♾️', name: 'Infinity' },
-    { id: 'music', emoji: '🎵', name: 'Music Note' },
-    { id: 'notes', emoji: '🎶', name: 'Music Notes' },
-    { id: 'crown', emoji: '👑', name: 'Crown' },
-    { id: 'diamond', emoji: '💎', name: 'Diamond' },
-    { id: 'ring', emoji: '💍', name: 'Ring' },
-    { id: 'gift', emoji: '🎁', name: 'Gift' },
-    { id: 'balloon', emoji: '🎈', name: 'Balloon' },
-    { id: 'party', emoji: '🎉', name: 'Party' },
-    { id: 'confetti', emoji: '🎊', name: 'Confetti' },
-    { id: 'ribbon', emoji: '🎀', name: 'Ribbon' },
-    { id: 'bow', emoji: '🏹', name: 'Bow' },
-    { id: 'bell', emoji: '🔔', name: 'Bell' },
-    { id: 'key', emoji: '🔑', name: 'Key' },
-    { id: 'lock', emoji: '🔒', name: 'Lock' },
-  ],
-  transport: [
-    { id: 'car', emoji: '🚗', name: 'Car' },
-    { id: 'taxi', emoji: '🚕', name: 'Taxi' },
-    { id: 'bus', emoji: '🚌', name: 'Bus' },
-    { id: 'truck', emoji: '🚚', name: 'Truck' },
-    { id: 'ambulance', emoji: '🚑', name: 'Ambulance' },
-    { id: 'fire_truck', emoji: '🚒', name: 'Fire Truck' },
-    { id: 'police', emoji: '🚔', name: 'Police Car' },
-    { id: 'motorcycle', emoji: '🏍️', name: 'Motorcycle' },
-    { id: 'bicycle', emoji: '🚲', name: 'Bicycle' },
-    { id: 'scooter', emoji: '🛴', name: 'Scooter' },
-    { id: 'train', emoji: '🚂', name: 'Train' },
-    { id: 'metro', emoji: '🚇', name: 'Metro' },
-    { id: 'tram', emoji: '🚊', name: 'Tram' },
-    { id: 'airplane', emoji: '✈️', name: 'Airplane' },
-    { id: 'helicopter', emoji: '🚁', name: 'Helicopter' },
-    { id: 'rocket', emoji: '🚀', name: 'Rocket' },
-    { id: 'ufo', emoji: '🛸', name: 'UFO' },
-    { id: 'ship', emoji: '🚢', name: 'Ship' },
-    { id: 'boat', emoji: '⛵', name: 'Sailboat' },
-    { id: 'speedboat', emoji: '🚤', name: 'Speedboat' },
-    { id: 'anchor', emoji: '⚓', name: 'Anchor' },
-    { id: 'fuel', emoji: '⛽', name: 'Fuel Pump' },
-    { id: 'traffic_light', emoji: '🚦', name: 'Traffic Light' },
-    { id: 'construction', emoji: '🚧', name: 'Construction' },
-    { id: 'wheel', emoji: '🛞', name: 'Wheel' },
-    { id: 'tractor', emoji: '🚜', name: 'Tractor' },
-    { id: 'skateboard', emoji: '🛹', name: 'Skateboard' },
-    { id: 'roller_skate', emoji: '🛼', name: 'Roller Skate' },
-    { id: 'canoe', emoji: '🛶', name: 'Canoe' },
-    { id: 'parachute', emoji: '🪂', name: 'Parachute' },
-  ],
-  school: [
-    { id: 'book', emoji: '📚', name: 'Books' },
-    { id: 'notebook', emoji: '📓', name: 'Notebook' },
-    { id: 'pencil', emoji: '✏️', name: 'Pencil' },
-    { id: 'pen', emoji: '🖊️', name: 'Pen' },
-    { id: 'crayon', emoji: '🖍️', name: 'Crayon' },
-    { id: 'ruler', emoji: '📏', name: 'Ruler' },
-    { id: 'scissors', emoji: '✂️', name: 'Scissors' },
-    { id: 'backpack', emoji: '🎒', name: 'Backpack' },
-    { id: 'graduation', emoji: '🎓', name: 'Graduation Cap' },
-    { id: 'microscope', emoji: '🔬', name: 'Microscope' },
-    { id: 'telescope', emoji: '🔭', name: 'Telescope' },
-    { id: 'calculator', emoji: '🧮', name: 'Abacus' },
-    { id: 'computer', emoji: '💻', name: 'Laptop' },
-    { id: 'globe', emoji: '🌐', name: 'Globe' },
-    { id: 'palette', emoji: '🎨', name: 'Art Palette' },
-    { id: 'abc', emoji: '🔤', name: 'ABC' },
-    { id: '123', emoji: '🔢', name: '123' },
-    { id: 'magnifier', emoji: '🔍', name: 'Magnifier' },
-    { id: 'lightbulb', emoji: '💡', name: 'Light Bulb' },
-    { id: 'brain', emoji: '🧠', name: 'Brain' },
-    { id: 'memo', emoji: '📝', name: 'Memo' },
-    { id: 'clipboard', emoji: '📋', name: 'Clipboard' },
-    { id: 'calendar', emoji: '📅', name: 'Calendar' },
-    { id: 'clock', emoji: '⏰', name: 'Alarm Clock' },
-    { id: 'trophy_school', emoji: '🏅', name: 'Medal' },
-    { id: 'folder', emoji: '📁', name: 'Folder' },
-    { id: 'paperclip', emoji: '📎', name: 'Paperclip' },
-    { id: 'pushpin', emoji: '📌', name: 'Pushpin' },
-    { id: 'triangular_ruler', emoji: '📐', name: 'Triangular Ruler' },
-    { id: 'school', emoji: '🏫', name: 'School' },
-  ],
-  faces: [
-    { id: 'smile', emoji: '😊', name: 'Smiling Face' },
-    { id: 'laugh', emoji: '😂', name: 'Laughing' },
-    { id: 'joy', emoji: '🤣', name: 'Joy' },
-    { id: 'wink', emoji: '😉', name: 'Winking' },
-    { id: 'love_eyes', emoji: '😍', name: 'Heart Eyes' },
-    { id: 'star_eyes', emoji: '🤩', name: 'Star Eyes' },
-    { id: 'kiss', emoji: '😘', name: 'Kissing' },
-    { id: 'tongue', emoji: '😋', name: 'Yummy' },
-    { id: 'cool', emoji: '😎', name: 'Cool' },
-    { id: 'nerd', emoji: '🤓', name: 'Nerd' },
-    { id: 'thinking', emoji: '🤔', name: 'Thinking' },
-    { id: 'shush', emoji: '🤫', name: 'Shushing' },
-    { id: 'zany', emoji: '🤪', name: 'Zany' },
-    { id: 'money', emoji: '🤑', name: 'Money Face' },
-    { id: 'hug', emoji: '🤗', name: 'Hugging' },
-    { id: 'party_face', emoji: '🥳', name: 'Party Face' },
-    { id: 'sleepy', emoji: '😴', name: 'Sleepy' },
-    { id: 'angel', emoji: '😇', name: 'Angel' },
-    { id: 'cowboy', emoji: '🤠', name: 'Cowboy' },
-    { id: 'clown', emoji: '🤡', name: 'Clown' },
-    { id: 'ghost', emoji: '👻', name: 'Ghost' },
-    { id: 'alien', emoji: '👽', name: 'Alien' },
-    { id: 'robot', emoji: '🤖', name: 'Robot' },
-    { id: 'skull', emoji: '💀', name: 'Skull' },
-    { id: 'poop', emoji: '💩', name: 'Poop' },
-    { id: 'cat_face', emoji: '😺', name: 'Cat Face' },
-    { id: 'monkey_face', emoji: '🙈', name: 'See No Evil' },
-    { id: 'baby', emoji: '👶', name: 'Baby' },
-    { id: 'boy', emoji: '👦', name: 'Boy' },
-    { id: 'girl', emoji: '👧', name: 'Girl' },
-  ],
-  hands: [
-    { id: 'thumbs_up', emoji: '👍', name: 'Thumbs Up' },
-    { id: 'thumbs_down', emoji: '👎', name: 'Thumbs Down' },
-    { id: 'clap', emoji: '👏', name: 'Clapping' },
-    { id: 'wave', emoji: '👋', name: 'Waving' },
-    { id: 'ok', emoji: '👌', name: 'OK Hand' },
-    { id: 'peace_hand', emoji: '✌️', name: 'Peace Hand' },
-    { id: 'love_hand', emoji: '🤟', name: 'Love You' },
-    { id: 'rock', emoji: '🤘', name: 'Rock On' },
-    { id: 'pinch', emoji: '🤏', name: 'Pinching' },
-    { id: 'fist', emoji: '✊', name: 'Raised Fist' },
-    { id: 'punch', emoji: '👊', name: 'Fist Bump' },
-    { id: 'high_five', emoji: '🙌', name: 'High Five' },
-    { id: 'pray', emoji: '🙏', name: 'Praying' },
-    { id: 'handshake', emoji: '🤝', name: 'Handshake' },
-    { id: 'writing', emoji: '✍️', name: 'Writing' },
-    { id: 'nail_polish', emoji: '💅', name: 'Nail Polish' },
-    { id: 'selfie', emoji: '🤳', name: 'Selfie' },
-    { id: 'muscle', emoji: '💪', name: 'Muscle' },
-    { id: 'point_up', emoji: '☝️', name: 'Point Up' },
-    { id: 'point_down', emoji: '👇', name: 'Point Down' },
-    { id: 'point_left', emoji: '👈', name: 'Point Left' },
-    { id: 'point_right', emoji: '👉', name: 'Point Right' },
-    { id: 'crossed_fingers', emoji: '🤞', name: 'Crossed Fingers' },
-    { id: 'call_me', emoji: '🤙', name: 'Call Me' },
-    { id: 'raised_hand', emoji: '✋', name: 'Raised Hand' },
-    { id: 'vulcan', emoji: '🖖', name: 'Vulcan' },
-    { id: 'open_hands', emoji: '👐', name: 'Open Hands' },
-    { id: 'palms_up', emoji: '🤲', name: 'Palms Up' },
-    { id: 'heart_hands', emoji: '🫶', name: 'Heart Hands' },
-    { id: 'salute', emoji: '🫡', name: 'Salute' },
-  ],
-  holidays: [
-    { id: 'christmas_tree', emoji: '🎄', name: 'Christmas Tree' },
-    { id: 'santa', emoji: '🎅', name: 'Santa' },
-    { id: 'snowman', emoji: '⛄', name: 'Snowman' },
-    { id: 'present', emoji: '🎁', name: 'Present' },
-    { id: 'pumpkin', emoji: '🎃', name: 'Pumpkin' },
-    { id: 'easter_egg', emoji: '🥚', name: 'Easter Egg' },
-    { id: 'bunny', emoji: '🐰', name: 'Easter Bunny' },
-    { id: 'fireworks', emoji: '🎆', name: 'Fireworks' },
-    { id: 'sparkler', emoji: '🎇', name: 'Sparkler' },
-    { id: 'firecracker', emoji: '🧨', name: 'Firecracker' },
-    { id: 'red_envelope', emoji: '🧧', name: 'Red Envelope' },
-    { id: 'tanabata', emoji: '🎋', name: 'Tanabata Tree' },
-    { id: 'pine', emoji: '🎍', name: 'Pine Decoration' },
-    { id: 'doll', emoji: '🎎', name: 'Japanese Dolls' },
-    { id: 'carp', emoji: '🎏', name: 'Carp Streamer' },
-    { id: 'wind_chime', emoji: '🎐', name: 'Wind Chime' },
-    { id: 'moon_ceremony', emoji: '🎑', name: 'Moon Ceremony' },
-    { id: 'jack_o_lantern', emoji: '🎃', name: 'Jack-o-Lantern' },
-    { id: 'menorah', emoji: '🕎', name: 'Menorah' },
-    { id: 'diya', emoji: '🪔', name: 'Diya Lamp' },
-    { id: 'candle', emoji: '🕯️', name: 'Candle' },
-    { id: 'turkey', emoji: '🦃', name: 'Turkey' },
-    { id: 'horn', emoji: '📯', name: 'Horn' },
-    { id: 'magic_wand', emoji: '🪄', name: 'Magic Wand' },
-    { id: 'pinata', emoji: '🪅', name: 'Piñata' },
-    { id: 'mirror_ball', emoji: '🪩', name: 'Mirror Ball' },
-    { id: 'nesting_dolls', emoji: '🪆', name: 'Nesting Dolls' },
-    { id: 'sled', emoji: '🛷', name: 'Sled' },
-    { id: 'mittens', emoji: '🧤', name: 'Mittens' },
-    { id: 'scarf', emoji: '🧣', name: 'Scarf' },
-  ],
-  objects: [
-    { id: 'camera', emoji: '📷', name: 'Camera' },
-    { id: 'phone', emoji: '📱', name: 'Phone' },
-    { id: 'tv', emoji: '📺', name: 'TV' },
-    { id: 'radio', emoji: '📻', name: 'Radio' },
-    { id: 'flashlight', emoji: '🔦', name: 'Flashlight' },
-    { id: 'battery', emoji: '🔋', name: 'Battery' },
-    { id: 'plug', emoji: '🔌', name: 'Plug' },
-    { id: 'umbrella', emoji: '☂️', name: 'Umbrella' },
-    { id: 'glasses', emoji: '👓', name: 'Glasses' },
-    { id: 'sunglasses', emoji: '🕶️', name: 'Sunglasses' },
-    { id: 'watch', emoji: '⌚', name: 'Watch' },
-    { id: 'gem', emoji: '💎', name: 'Gem' },
-    { id: 'lipstick', emoji: '💄', name: 'Lipstick' },
-    { id: 'shirt', emoji: '👕', name: 'T-Shirt' },
-    { id: 'dress', emoji: '👗', name: 'Dress' },
-    { id: 'jeans', emoji: '👖', name: 'Jeans' },
-    { id: 'shoe', emoji: '👟', name: 'Sneaker' },
-    { id: 'boot', emoji: '👢', name: 'Boot' },
-    { id: 'hat', emoji: '🎩', name: 'Top Hat' },
-    { id: 'cap', emoji: '🧢', name: 'Cap' },
-    { id: 'handbag', emoji: '👜', name: 'Handbag' },
-    { id: 'suitcase', emoji: '🧳', name: 'Suitcase' },
-    { id: 'teddy', emoji: '🧸', name: 'Teddy Bear' },
-    { id: 'yarn', emoji: '🧶', name: 'Yarn' },
-    { id: 'thread', emoji: '🧵', name: 'Thread' },
-    { id: 'safety_pin', emoji: '🧷', name: 'Safety Pin' },
-    { id: 'broom', emoji: '🧹', name: 'Broom' },
-    { id: 'soap', emoji: '🧼', name: 'Soap' },
-    { id: 'toothbrush', emoji: '🪥', name: 'Toothbrush' },
-    { id: 'mirror', emoji: '🪞', name: 'Mirror' },
-  ],
+type ClipartItem = {
+  id: string;
+  name: string;
+  folder: string;
+  thumbnailUrl: string;
+  assetUrl: string;
 };
 
-const categories = [
+type ClipartQuery = {
+  folder: string;
+  search: string;
+};
+
+type ClipartSearchResponse = {
+  total: number;
+  items: ClipartItem[];
+};
+
+function proxifyAssetUrl(url: string) {
+  if (!url) return url;
+  if (url.startsWith('data:') || url.startsWith('/')) return url;
+  if (url.startsWith('https://maestro.onlinelabels.com/')) {
+    return `/maestro-asset${url.replace('https://maestro.onlinelabels.com', '')}`;
+  }
+  return url;
+}
+
+function svgDataUrl(svg: string) {
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+const placeholderClipart: ClipartItem[] = [
+  {
+    id: 'handprint',
+    name: 'Handprint',
+    folder: 'kids',
+    thumbnailUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" fill="white"/><path d="M55 20c0-6 10-6 10 0v38h6V16c0-6 10-6 10 0v44h6V22c0-6 10-6 10 0v54c0 18-14 32-32 32H50c-18 0-32-14-32-32V52c0-6 10-6 10 0v22h6V30c0-6 10-6 10 0v44h6V20z" fill="#111"/></svg>',
+    ),
+    assetUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M220 80c0-24 40-24 40 0v152h24V64c0-24 40-24 40 0v176h24V88c0-24 40-24 40 0v216c0 72-56 128-128 128H200c-72 0-128-56-128-128V208c0-24 40-24 40 0v88h24V120c0-24 40-24 40 0v176h24V80z" fill="#111"/></svg>',
+    ),
+  },
+  {
+    id: 'heart',
+    name: 'Heart',
+    folder: 'symbols',
+    thumbnailUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" fill="white"/><path d="M64 110S20 84 20 50c0-16 12-28 28-28 8 0 14 3 16 7 2-4 8-7 16-7 16 0 28 12 28 28 0 34-44 60-44 60z" fill="#e11d48"/></svg>',
+    ),
+    assetUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 444S80 338 80 200c0-64 48-112 112-112 32 0 56 12 64 28 8-16 32-28 64-28 64 0 112 48 112 112 0 138-176 244-176 244z" fill="#e11d48"/></svg>',
+    ),
+  },
+  {
+    id: 'apple',
+    name: 'Apple',
+    folder: 'food',
+    thumbnailUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" fill="white"/><path d="M68 28c10 0 18-8 18-18-10 0-18 8-18 18z" fill="#16a34a"/><path d="M64 34c-20 0-36 16-36 36 0 34 20 48 36 48s36-14 36-48c0-20-16-36-36-36z" fill="#dc2626"/></svg>',
+    ),
+    assetUrl: svgDataUrl(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M272 112c40 0 72-32 72-72-40 0-72 32-72 72z" fill="#16a34a"/><path d="M256 136c-80 0-144 64-144 144 0 136 80 192 144 192s144-56 144-192c0-80-64-144-144-144z" fill="#dc2626"/></svg>',
+    ),
+  },
+  {
+    id: 'maestro_asset_1',
+    name: 'Maestro Asset',
+    folder: 'all',
+    thumbnailUrl:
+      'https://maestro.onlinelabels.com/LabelMaker/Api/File/GetAsset?asset=a1a%252fxtVGFQTEMcQ2h0cHmA%253d%253d',
+    assetUrl:
+      'https://maestro.onlinelabels.com/LabelMaker/Api/File/GetAsset?asset=a1a%252fxtVGFQTEMcQ2h0cHmA%253d%253d',
+  },
+  {
+    id: 'maestro_asset_2',
+    name: 'Maestro Asset 2',
+    folder: 'all',
+    thumbnailUrl:
+      'https://maestro.onlinelabels.com/LabelMaker/Api/File/GetAsset?asset=YXfxGb06Y2bplVXWp3dWHw%253d%253d',
+    assetUrl:
+      'https://maestro.onlinelabels.com/LabelMaker/Api/File/GetAsset?asset=YXfxGb06Y2bplVXWp3dWHw%253d%253d',
+  },
+];
+
+async function searchMaestroClipart(_query: ClipartQuery): Promise<ClipartSearchResponse> {
+  const search = _query.search.trim().toLowerCase();
+
+  let filtered = placeholderClipart;
+  if (_query.folder !== 'all') {
+    filtered = filtered.filter((i) => i.folder === _query.folder);
+  }
+  if (search.length > 0) {
+    filtered = filtered.filter((i) => i.name.toLowerCase().includes(search));
+  }
+
+  return {
+    total: filtered.length,
+    items: filtered,
+  };
+}
+
+const folders = [
   { id: 'all', name: 'All' },
-  { id: 'animals', name: 'Animals' },
+  { id: 'kids', name: 'Kids' },
   { id: 'food', name: 'Food' },
-  { id: 'nature', name: 'Nature' },
-  { id: 'sports', name: 'Sports' },
   { id: 'symbols', name: 'Symbols' },
-  { id: 'transport', name: 'Transport' },
-  { id: 'school', name: 'School' },
-  { id: 'faces', name: 'Faces' },
-  { id: 'hands', name: 'Hands' },
-  { id: 'holidays', name: 'Holidays' },
-  { id: 'objects', name: 'Objects' },
 ];
 
 interface ClipartPickerProps {
   selectedClipart: string;
   onSelect: (emoji: string) => void;
-  showClipart: boolean;
-  onToggleShow: (show: boolean) => void;
 }
 
-export function ClipartPicker({ selectedClipart, onSelect, showClipart, onToggleShow }: ClipartPickerProps) {
+export function ClipartPicker({ selectedClipart, onSelect }: ClipartPickerProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFolder, setSelectedFolder] = useState('all');
+  const [items, setItems] = useState<ClipartItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const allClipart = useMemo(() => {
-    return Object.values(clipartLibrary).flat();
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
 
-  const filteredClipart = useMemo(() => {
-    let items = selectedCategory === 'all' 
-      ? allClipart 
-      : clipartLibrary[selectedCategory as keyof typeof clipartLibrary] || [];
-    
-    if (searchTerm) {
-      items = items.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    return items;
-  }, [selectedCategory, searchTerm, allClipart]);
+    searchMaestroClipart({ folder: selectedFolder, search: searchTerm })
+      .then((res) => {
+        if (cancelled) return;
+        setItems(res.items);
+        setTotalCount(res.total);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setItems([]);
+        setTotalCount(0);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
 
-  const totalCount = allClipart.length;
+    return () => {
+      cancelled = true;
+    };
+  }, [searchTerm, selectedFolder]);
+
+  const selectedIsUrl = useMemo(() => {
+    return selectedClipart?.startsWith('http') || selectedClipart?.startsWith('data:') || selectedClipart?.startsWith('/');
+  }, [selectedClipart]);
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Choose Clipart</h3>
-        <label className="flex items-center gap-2 text-sm">
-          <input 
-            type="checkbox"
-            checked={showClipart}
-            onChange={(e) => onToggleShow(e.target.checked)}
-            className="rounded border-border"
+        <h3 className="text-sm font-semibold text-foreground">Clipart</h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+          <SelectTrigger>
+            <SelectValue placeholder="Folder" />
+          </SelectTrigger>
+          <SelectContent>
+            {folders.map((f) => (
+              <SelectItem key={f.id} value={f.id}>
+                {f.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search Keywords..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
           />
-          Show on label
-        </label>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search clipart..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
-      </div>
-
-      {/* Categories */}
-      <div className="flex flex-wrap gap-1">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setSelectedCategory(category.id)}
-            className={`px-2 py-1 text-xs rounded-md transition-colors ${
-              selectedCategory === category.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
+        </div>
       </div>
 
       {/* Count */}
       <p className="text-xs text-muted-foreground">
-        {filteredClipart.length} of {totalCount} images
+        {loading ? 'Loading…' : `${totalCount.toLocaleString()} images`}
       </p>
 
       {/* Clipart Grid */}
-      <ScrollArea className="h-48 rounded-md border border-border">
-        <div className="grid grid-cols-6 gap-1 p-2">
-          {filteredClipart.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onSelect(item.emoji)}
-              className={`p-2 text-2xl rounded-md transition-all hover:bg-muted ${
-                selectedClipart === item.emoji 
-                  ? 'bg-primary/20 ring-2 ring-primary' 
-                  : ''
-              }`}
-              title={item.name}
-            >
-              {item.emoji}
-            </button>
-          ))}
-        </div>
+      <ScrollArea className="h-60 rounded-md border border-border">
+        {items.length === 0 ? (
+          <div className="p-3 text-sm text-muted-foreground">
+            No clipart loaded yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 p-2">
+            {items.map((item) => (
+              (() => {
+                const assetUrl = proxifyAssetUrl(item.assetUrl);
+                return (
+              <button
+                key={item.id}
+                onClick={() => onSelect(assetUrl)}
+                className={`relative aspect-[4/3] overflow-hidden rounded-md border border-border bg-white p-2 transition-colors hover:bg-muted/40 ${
+                  selectedClipart === assetUrl ? 'ring-2 ring-primary' : ''
+                }`}
+                title={item.name}
+              >
+                <span className="absolute left-1 top-1 text-sm text-foreground/80">★</span>
+                <img
+                  src={proxifyAssetUrl(item.thumbnailUrl)}
+                  alt={item.name}
+                  className="h-full w-full object-contain"
+                  loading="lazy"
+                  draggable={false}
+                />
+              </button>
+                );
+              })()
+            ))}
+          </div>
+        )}
       </ScrollArea>
 
       {/* Selected Preview */}
-      {selectedClipart && showClipart && (
+      {selectedClipart && (
         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
           <span className="text-sm text-muted-foreground">Selected:</span>
-          <span className="text-3xl">{selectedClipart}</span>
+          {selectedIsUrl ? (
+            <img src={selectedClipart} alt="Selected clipart" className="h-10 w-10 object-contain" />
+          ) : (
+            <span className="text-3xl">{selectedClipart}</span>
+          )}
         </div>
       )}
     </div>

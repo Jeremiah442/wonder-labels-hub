@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useCart } from '@/lib/cart';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const navLinks = [
-  { href: '/', label: 'Home' },
   { href: '/products', label: 'Products' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -21,6 +21,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
+  const { totalItems } = useCart();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -51,10 +52,33 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {user && (
+              <Link
+                to="/orders"
+                className={`text-sm font-medium transition-colors duration-200 ${
+                  location.pathname === '/orders'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Orders
+              </Link>
+            )}
           </div>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
+            <Button variant="ghost-gold" size="sm" asChild>
+              <Link to="/cart" className="relative">
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Cart
+                {totalItems > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold px-2 py-0.5">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+            </Button>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -64,12 +88,6 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center gap-2">
@@ -124,14 +142,27 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              {user && (
+                <Link
+                  to="/orders"
+                  onClick={() => setIsOpen(false)}
+                  className={`text-sm font-medium py-2 transition-colors ${
+                    location.pathname === '/orders'
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  Orders
+                </Link>
+              )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                <Button variant="ghost-gold" size="sm" asChild>
+                  <Link to="/cart" onClick={() => setIsOpen(false)}>
+                    Cart{totalItems > 0 ? ` (${totalItems})` : ''}
+                  </Link>
+                </Button>
                 {user ? (
                   <>
-                    <Button variant="outline-gold" size="sm" asChild>
-                      <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                        Dashboard
-                      </Link>
-                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => { signOut(); setIsOpen(false); }}>
                       Sign Out
                     </Button>
