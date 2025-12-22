@@ -17,6 +17,7 @@ import Orders from "./pages/Orders";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
+import AuthCallback from "./pages/AuthCallback";
 import { CartProvider } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/dashboard" element={<Navigate to="/products" replace />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />

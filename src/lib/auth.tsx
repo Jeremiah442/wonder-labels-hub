@@ -23,6 +23,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        const emailConfirmedAt = (session?.user as unknown as { email_confirmed_at?: string | null } | null)?.email_confirmed_at;
+
+        if (session?.user && !emailConfirmedAt) {
+          supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -38,6 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      const emailConfirmedAt = (session?.user as unknown as { email_confirmed_at?: string | null } | null)?.email_confirmed_at;
+
+      if (session?.user && !emailConfirmedAt) {
+        supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -62,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/auth/callback`;
     
     const { data, error } = await supabase.auth.signUp({
       email,

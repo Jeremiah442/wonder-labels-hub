@@ -60,7 +60,6 @@ export default function Auth() {
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -74,6 +73,7 @@ export default function Auth() {
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from;
   const stateEmail = (location.state as { email?: string } | null)?.email;
+  const stateError = (location.state as { error?: string } | null)?.error;
   const emailFromQuery = searchParams.get('email');
 
   useEffect(() => {
@@ -89,62 +89,31 @@ export default function Auth() {
   }, [emailFromQuery, stateEmail]);
 
   useEffect(() => {
+    if (stateError) {
+      toast.error(stateError);
+    }
+  }, [stateError]);
+
+  useEffect(() => {
     if (user && mode !== 'verify') {
       navigate('/products');
     }
   }, [user, navigate, from, mode]);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const email = formData.email.trim();
-    const token = verificationCode.trim();
+  const maybeResendVerificationEmail = async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
 
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-    if (!token) {
-      toast.error('Please enter the confirmation code');
+    const cooldownMs = 60_000;
+    const storageKey = `verification_email_last_sent:${normalizedEmail}`;
+    const lastSentAt = Number(localStorage.getItem(storageKey) || '0');
+    if (lastSentAt && Date.now() - lastSentAt < cooldownMs) {
       return;
     }
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'signup',
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
-      toast.success('Email confirmed!');
-      setVerificationCode('');
-      navigate('/products');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    const email = formData.email.trim();
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resend({ type: 'signup', email });
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      toast.success('Confirmation code sent. Check your email.');
-    } finally {
-      setLoading(false);
+    const { error } = await supabase.auth.resend({ type: 'signup', email: normalizedEmail });
+    if (!error) {
+      localStorage.setItem(storageKey, String(Date.now()));
     }
   };
 
@@ -171,7 +140,8 @@ export default function Auth() {
           const emailConfirmedAt = (data.user as unknown as { email_confirmed_at?: string | null } | null)?.email_confirmed_at;
           if (!emailConfirmedAt) {
             await supabase.auth.signOut();
-            toast.error('Please confirm your email with the code we sent you before signing in.');
+            await maybeResendVerificationEmail(validated.email);
+            toast.error('Please verify your email from the link we sent you before signing in.');
             setMode('verify');
             return;
           }
@@ -187,12 +157,14 @@ export default function Auth() {
         const { error } = await signUp(validated.email, validated.password, validated.fullName, validated.phone);
         if (error) {
           if (error.message.includes('already registered')) {
-            toast.error('This email is already registered. Please sign in.');
+            await maybeResendVerificationEmail(validated.email);
+            toast.error('This email is already registered. Please check your email to verify your account, then sign in.');
+            setMode('verify');
           } else {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created. Check your email for a confirmation code.');
+          toast.success('Account created. Check your email to verify your account.');
           setMode('verify');
         }
       }
@@ -228,47 +200,19 @@ export default function Auth() {
 
             <div className="p-8 rounded-2xl bg-gradient-card border border-border">
               {mode === 'verify' ? (
-                <form onSubmit={handleVerify} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="pl-10"
-                        required
-                      />
+                <div className="space-y-5">
+                  <div className="space-y-2 text-center">
+                    <div className="mx-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20">
+                      <Mail className="w-5 h-5 text-primary" />
                     </div>
+                    <h2 className="text-xl font-semibold">Verify your email</h2>
+                    <p className="text-muted-foreground text-sm">
+                      We’ve sent a verification link to{' '}
+                      <span className="font-medium text-foreground">{formData.email || 'your email address'}</span>.
+                      {' '}Open the email and tap <span className="font-medium text-foreground">Verify Email</span> to sign in automatically.
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="code">Confirmation Code</Label>
-                    <Input
-                      id="code"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
-                    {loading ? 'Please wait...' : 'Confirm Email'}
-                  </Button>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button type="button" variant="outline-gold" size="lg" className="w-full" onClick={handleResendCode} disabled={loading}>
-                      Resend Code
-                    </Button>
-                    <Button type="button" variant="ghost" size="lg" className="w-full" onClick={() => setMode('signin')} disabled={loading}>
-                      Back to Sign In
-                    </Button>
-                  </div>
-                </form>
+                </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === 'signup' && (
