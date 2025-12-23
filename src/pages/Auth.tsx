@@ -54,12 +54,16 @@ function isDisposableEmail(email: string) {
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<'signin' | 'signup' | 'verify'>(() => {
+  const [mode, setMode] = useState<'signin' | 'signup' | 'verify' | 'forgot' | 'reset'>(() => {
     const m = searchParams.get('mode');
-    return m === 'signup' || m === 'verify' ? m : 'signin';
+    if (m === 'signup' || m === 'verify' || m === 'forgot' || m === 'reset') return m;
+    return 'signin';
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -78,8 +82,21 @@ export default function Auth() {
 
   useEffect(() => {
     const m = searchParams.get('mode');
-    setMode(m === 'signup' || m === 'verify' ? m : 'signin');
+    if (m === 'signup' || m === 'verify' || m === 'forgot' || m === 'reset') {
+      setMode(m);
+    } else {
+      setMode('signin');
+    }
   }, [searchParams]);
+
+  // Handle password reset link from email
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    if (type === 'recovery') {
+      setMode('reset');
+    }
+  }, []);
 
   useEffect(() => {
     const email = emailFromQuery || stateEmail;
@@ -95,7 +112,7 @@ export default function Auth() {
   }, [stateError]);
 
   useEffect(() => {
-    if (user && mode !== 'verify') {
+    if (user && mode !== 'verify' && mode !== 'reset') {
       navigate('/products');
     }
   }, [user, navigate, from, mode]);
@@ -114,6 +131,72 @@ export default function Auth() {
     const { error } = await supabase.auth.resend({ type: 'signup', email: normalizedEmail });
     if (!error) {
       localStorage.setItem(storageKey, String(Date.now()));
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = formData.email.trim();
+    
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    try {
+      z.string().email().parse(email);
+    } catch {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Password reset link sent! Check your email.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Password updated successfully!');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setMode('signin');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,8 +247,8 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created. Check your email to verify your account.');
           setMode('verify');
+          toast.info('Check your email for a confirmation code.');
         }
       }
     } catch (error) {
@@ -174,6 +257,49 @@ export default function Auth() {
       } else {
         toast.error('An unexpected error occurred');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode || verificationCode.length < 6) {
+      toast.error('Please enter a valid verification code');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: verificationCode,
+        type: 'signup'
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Email verified successfully!');
+        navigate('/products');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!formData.email) {
+      toast.error('Please enter your email address first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await maybeResendVerificationEmail(formData.email);
+      toast.success('Verification code sent! Check your email.');
+    } catch (error) {
+      toast.error('Failed to resend verification code');
     } finally {
       setLoading(false);
     }
@@ -189,31 +315,152 @@ export default function Auth() {
                 <Package className="w-8 h-8 text-primary" />
               </div>
               <h1 className="font-display text-4xl font-bold text-foreground mb-2">
-                {mode === 'signin' ? 'Welcome Back' : 'Welcome to Wonder Labels'}
+                {mode === 'signin' && 'Welcome Back'}
+                {mode === 'signup' && 'Welcome to Wonder Labels'}
+                {mode === 'verify' && 'Verify Your Email'}
+                {mode === 'forgot' && 'Reset Password'}
+                {mode === 'reset' && 'Create New Password'}
               </h1>
               <p className="text-muted-foreground text-lg">
-                {mode === 'signin'
-                  ? 'Sign in to your account to continue'
-                  : 'Create your account to get started with premium labeling solutions'}
+                {mode === 'signin' && 'Sign in to your account to continue'}
+                {mode === 'signup' && 'Create your account to get started with premium labeling solutions'}
+                {mode === 'verify' && 'Enter the confirmation code sent to your email'}
+                {mode === 'forgot' && 'Enter your email to receive a password reset link'}
+                {mode === 'reset' && 'Enter your new password below'}
               </p>
             </div>
 
             <div className="p-8 rounded-2xl bg-gradient-card border border-border">
-              {mode === 'verify' ? (
-                <div className="space-y-5">
-                  <div className="space-y-2 text-center">
-                    <div className="mx-auto inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20">
-                      <Mail className="w-5 h-5 text-primary" />
+              {mode === 'verify' && (
+                <form onSubmit={handleVerify} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
                     </div>
                     <h2 className="text-xl font-semibold">Verify your email</h2>
                     <p className="text-muted-foreground text-sm">
-                      We’ve sent a verification link to{' '}
+                      We've sent a verification link to{' '}
                       <span className="font-medium text-foreground">{formData.email || 'your email address'}</span>.
                       {' '}Open the email and tap <span className="font-medium text-foreground">Verify Email</span> to sign in automatically.
                     </p>
                   </div>
-                </div>
-              ) : (
+
+                  <div className="space-y-2">
+                    <Label htmlFor="code">Confirmation Code</Label>
+                    <Input
+                      id="code"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
+                    {loading ? 'Please wait...' : 'Confirm Email'}
+                  </Button>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button type="button" variant="outline-gold" size="lg" className="w-full" onClick={handleResendCode} disabled={loading}>
+                      Resend Code
+                    </Button>
+                    <Button type="button" variant="ghost" size="lg" className="w-full" onClick={() => setMode('signin')} disabled={loading}>
+                      Back to Sign In
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {mode === 'forgot' && (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="pl-10"
+                        placeholder="Enter your email"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
+                    {loading ? 'Please wait...' : 'Send Reset Link'}
+                  </Button>
+
+                  <Button type="button" variant="ghost" size="lg" className="w-full" onClick={() => setMode('signin')} disabled={loading}>
+                    Back to Sign In
+                  </Button>
+                </form>
+              )}
+
+              {mode === 'reset' && (
+                <form onSubmit={handleResetPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="newPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        placeholder="Enter new password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="confirmNewPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        className="pl-10"
+                        placeholder="Confirm new password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
+                    {loading ? 'Please wait...' : 'Update Password'}
+                  </Button>
+
+                  <Button type="button" variant="ghost" size="lg" className="w-full" onClick={() => setMode('signin')} disabled={loading}>
+                    Back to Sign In
+                  </Button>
+                </form>
+              )}
+
+              {(mode === 'signin' || mode === 'signup') && (
                 <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === 'signup' && (
                   <div className="space-y-2">
@@ -282,7 +529,19 @@ export default function Auth() {
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
+                </div>
+
+                {mode === 'signin' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setMode('forgot')}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
                   </div>
+                )}
                 </div>
 
                 {mode === 'signup' && (
@@ -308,18 +567,20 @@ export default function Auth() {
                 </form>
               )}
 
-              <div className="mt-6 text-center">
-                <p className="text-muted-foreground text-sm">
-                  {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
-                  <button
-                    type="button"
-                    onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-                    className="text-primary font-medium hover:underline"
-                  >
-                    {mode === 'signin' ? 'Sign Up' : 'Sign In'}
-                  </button>
-                </p>
-              </div>
+              {(mode === 'signin' || mode === 'signup') && (
+                <div className="mt-6 text-center">
+                  <p className="text-muted-foreground text-sm">
+                    {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+                    <button
+                      type="button"
+                      onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+                      className="text-primary font-medium hover:underline"
+                    >
+                      {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                    </button>
+                  </p>
+                </div>
+              )}
             </div>
 
             <p className="text-center text-muted-foreground text-sm mt-6">
