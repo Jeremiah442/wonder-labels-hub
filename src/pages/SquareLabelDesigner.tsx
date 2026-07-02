@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Palette, Type, Wand2 } from 'lucide-react';
+import { Palette, Type, Wand2, Save } from 'lucide-react';
 import { ImagePicker } from '@/components/ImagePicker';
 import { DesignerWorkspace } from '@/components/designer/DesignerWorkspace';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/lib/cart';
+import { ImagePositionPicker, defaultImagePosition } from '@/components/ImagePositionPicker';
+import { smallSquareTier, squareSizeLimits } from '@/lib/squareLabelSizing';
+import { SquareLabelPreview } from '@/components/previews/SquareLabelPreview';
+import { useSavedDesign } from '@/hooks/useSavedDesign';
 
 const fontColors = [
   { name: 'Maroon', value: '#7f1d1d' },
@@ -168,6 +172,7 @@ export default function SquareLabelDesigner() {
     lastName: '',
     imageUrl: '',
     imageSize: 24,
+    imagePosition: defaultImagePosition,
     textColor: fontColors[0].value,
     backgroundColorOdd: 'transparent',
     backgroundColorEven: 'transparent',
@@ -180,18 +185,11 @@ export default function SquareLabelDesigner() {
 
   const [previewFont, setPreviewFont] = useState<string | null>(null);
 
-  const imageIsUrl =
-    labelData.imageUrl?.startsWith('http') ||
-    labelData.imageUrl?.startsWith('data:') ||
-    labelData.imageUrl?.startsWith('/') ||
-    labelData.imageUrl?.startsWith('blob:');
-
   const updateLabel = (field: string, value: any) => {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
   const selectedFontName = fonts.find((f) => f.value === labelData.font)?.name ?? 'Font';
-  const canvasFont = previewFont ?? labelData.font;
 
   const resetTextFormatting = () => {
     setLabelData((prev) => ({
@@ -204,13 +202,9 @@ export default function SquareLabelDesigner() {
     }));
   };
 
-  const previewBackgroundForColumn = (colIndex: number) => {
-    const isOddColumnOneBased = colIndex % 2 === 0;
-    return isOddColumnOneBased ? labelData.backgroundColorOdd : labelData.backgroundColorEven;
-  };
-
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { saving, isEditingOther, save } = useSavedDesign('square', setLabelData);
 
   const addToCart = () => {
     addItem({
@@ -225,16 +219,7 @@ export default function SquareLabelDesigner() {
     navigate('/cart');
   };
 
-  // Column configuration: odd columns (1,3,5,7) have 3 squares of 3cm, even columns (2,4,6) have 4 squares of 2.1cm
-  const columns = [
-    { count: 3, size: '3cm' },    // Column 1
-    { count: 4, size: '2.1cm' },  // Column 2
-    { count: 3, size: '3cm' },    // Column 3
-    { count: 4, size: '2.1cm' },  // Column 4
-    { count: 3, size: '3cm' },    // Column 5
-    { count: 4, size: '2.1cm' },  // Column 6
-    { count: 3, size: '3cm' },    // Column 7
-  ];
+  const smallSquareLimits = squareSizeLimits(smallSquareTier);
 
   return (
     <Layout>
@@ -290,7 +275,16 @@ export default function SquareLabelDesigner() {
                 />
                 <span className="text-sm text-muted-foreground w-10 text-right">px</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Scales down automatically on the smaller squares · capped at {smallSquareLimits.maxImageSize}px so it never overflows.
+              </p>
             </div>
+
+            <ImagePositionPicker
+              value={labelData.imagePosition}
+              onChange={(v) => updateLabel('imagePosition', v)}
+              allowedPositions={['top', 'bottom']}
+            />
 
             <div className="space-y-2">
               <Label className="text-lg font-semibold flex items-center gap-2">
@@ -398,6 +392,9 @@ export default function SquareLabelDesigner() {
                 />
                 <span className="text-sm text-muted-foreground w-10 text-right">px</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Scales down automatically on the smaller squares · capped at {smallSquareLimits.maxFontSize}px so text never overflows.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -443,81 +440,36 @@ export default function SquareLabelDesigner() {
         canvas={
           <Card className="border-2 border-primary/20">
             <CardContent className="p-6">
-              <div className="flex items-start justify-center min-h-[520px] p-4 gap-2 overflow-x-auto">
-                {columns.map((col, colIndex) => (
-                  <div key={`col-${colIndex}`} className="flex flex-col gap-2 items-center">
-                    {[...Array(col.count)].map((_, i) => (
-                      <div
-                        key={`square-${colIndex}-${i}`}
-                        className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-md"
-                        style={{
-                          width: col.size,
-                          height: col.size,
-                          backgroundColor: previewBackgroundForColumn(colIndex),
-                          fontFamily: canvasFont,
-                        }}
-                      >
-                        {labelData.imageUrl && imageIsUrl ? (
-                          <img
-                            src={labelData.imageUrl}
-                            alt="Selected image"
-                            className={col.size === '3cm' ? 'mb-1 object-contain' : 'object-contain'}
-                            style={{
-                              width: col.size === '3cm' ? labelData.imageSize : Math.max(8, Math.round(labelData.imageSize * 0.8)),
-                              height: col.size === '3cm' ? labelData.imageSize : Math.max(8, Math.round(labelData.imageSize * 0.8)),
-                            }}
-                            draggable={false}
-                          />
-                        ) : null}
-                        {!!labelData.firstName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: col.size === '3cm' ? labelData.fontSize : Math.max(6, Math.round(labelData.fontSize * 0.7)),
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.firstName}
-                          </span>
-                        )}
+              <SquareLabelPreview labelData={labelData} fontOverride={previewFont ?? undefined} />
 
-                        {!!labelData.lastName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: col.size === '3cm' ? labelData.fontSize : Math.max(6, Math.round(labelData.fontSize * 0.7)),
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.lastName}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+              {isEditingOther && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  You're editing a customer's saved design.
+                </p>
+              )}
 
-              <div className="mt-6 pt-6 border-t border-border">
+              <div className="mt-6 pt-6 border-t border-border flex flex-col sm:flex-row gap-3">
                 <Button
-                  variant="gold"
+                  variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={addToCart}
-                  disabled={!labelData.firstName && !labelData.lastName}
+                  onClick={() => save(labelData)}
+                  disabled={saving}
                 >
-                  Add to Cart
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : isEditingOther ? 'Save Changes' : 'Save Design'}
                 </Button>
+                {!isEditingOther && (
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    onClick={addToCart}
+                    disabled={!labelData.firstName && !labelData.lastName}
+                  >
+                    Add to Cart
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

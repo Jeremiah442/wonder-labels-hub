@@ -155,6 +155,20 @@ export function Navbar() {
                   Orders
                 </Link>
               )}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-2 text-sm font-medium py-2 transition-colors ${
+                    location.pathname === '/admin'
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Admin Panel
+                </Link>
+              )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Button variant="ghost-gold" size="sm" asChild>
                   <Link to="/cart" onClick={() => setIsOpen(false)}>

@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Palette, Type, Wand2, ArrowLeft } from 'lucide-react';
+import { Palette, Type, Wand2, ArrowLeft, Save } from 'lucide-react';
 import { ImagePicker } from '@/components/ImagePicker';
 import { DesignerWorkspace } from '@/components/designer/DesignerWorkspace';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/lib/cart';
+import { ImagePositionPicker, defaultImagePosition } from '@/components/ImagePositionPicker';
+import { smallCircleTier, circleSizeLimits } from '@/lib/circleLabelSizing';
+import { CircularLabelPreview } from '@/components/previews/CircularLabelPreview';
+import { useSavedDesign } from '@/hooks/useSavedDesign';
 
 const fontColors = [
   { name: 'Maroon', value: '#7f1d1d' },
@@ -168,6 +172,7 @@ export default function LabelDesigner() {
     lastName: '',
     imageUrl: '',
     imageSize: 32,
+    imagePosition: defaultImagePosition,
     textColor: fontColors[0].value,
     backgroundColor: 'transparent',
     font: fonts[0].value,
@@ -179,18 +184,11 @@ export default function LabelDesigner() {
 
   const [previewFont, setPreviewFont] = useState<string | null>(null);
 
-  const imageIsUrl =
-    labelData.imageUrl?.startsWith('http') ||
-    labelData.imageUrl?.startsWith('data:') ||
-    labelData.imageUrl?.startsWith('/') ||
-    labelData.imageUrl?.startsWith('blob:');
-
   const updateLabel = (field: string, value: any) => {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
   const selectedFontName = fonts.find((f) => f.value === labelData.font)?.name ?? 'Font';
-  const canvasFont = previewFont ?? labelData.font;
 
   const resetTextFormatting = () => {
     setLabelData((prev) => ({
@@ -205,6 +203,7 @@ export default function LabelDesigner() {
 
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { saving, isEditingOther, save } = useSavedDesign('circular', setLabelData);
 
   const addToCart = () => {
     addItem({
@@ -218,6 +217,8 @@ export default function LabelDesigner() {
     });
     navigate('/cart');
   };
+
+  const smallCircleLimits = circleSizeLimits(smallCircleTier);
 
   return (
     <Layout>
@@ -273,7 +274,15 @@ export default function LabelDesigner() {
                 />
                 <span className="text-sm text-muted-foreground w-10 text-right">px</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Scales down automatically on smaller circles · capped at {smallCircleLimits.maxImageSize}px on the smallest labels so it never overflows.
+              </p>
             </div>
+
+            <ImagePositionPicker
+              value={labelData.imagePosition}
+              onChange={(v) => updateLabel('imagePosition', v)}
+            />
 
             <div className="space-y-2">
               <Label className="text-lg font-semibold flex items-center gap-2">
@@ -360,6 +369,9 @@ export default function LabelDesigner() {
                 />
                 <span className="text-sm text-muted-foreground w-10 text-right">px</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Scales down automatically on smaller circles · capped at {smallCircleLimits.maxFontSize}px on the smallest labels so text never overflows.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -405,185 +417,36 @@ export default function LabelDesigner() {
         canvas={
           <Card className="border-2 border-primary/20">
             <CardContent className="p-6">
-              <div className="flex flex-col items-center justify-center min-h-[520px] p-4 gap-3">
-                <div className="flex items-center justify-center gap-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div
-                      key={`row1-${i}`}
-                      className="relative w-[4.5cm] h-[4.5cm] rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all"
-                      style={{
-                        backgroundColor: labelData.backgroundColor,
-                        fontFamily: canvasFont,
-                      }}
-                    >
-                      <div className="flex w-full flex-col items-center justify-center">
-                        {!!labelData.firstName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: labelData.fontSize,
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.firstName}
-                          </span>
-                        )}
+              <CircularLabelPreview labelData={labelData} fontOverride={previewFont ?? undefined} />
 
-                        {labelData.imageUrl && imageIsUrl ? (
-                          <img
-                            src={labelData.imageUrl}
-                            alt="Selected image"
-                            className="my-1 object-contain"
-                            style={{ width: labelData.imageSize, height: labelData.imageSize }}
-                            draggable={false}
-                          />
-                        ) : null}
+              {isEditingOther && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  You're editing a customer's saved design.
+                </p>
+              )}
 
-                        {!!labelData.lastName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: labelData.fontSize,
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.lastName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  {[...Array(7)].map((_, i) => (
-                    <div
-                      key={`row2-${i}`}
-                      className="w-[2.5cm] h-[2.5cm] rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-1 transition-all"
-                      style={{
-                        backgroundColor: labelData.backgroundColor,
-                        fontFamily: canvasFont,
-                      }}
-                    >
-                      {!!labelData.firstName && (
-                        <span
-                          className="leading-tight"
-                          style={{
-                            color: labelData.textColor,
-                            fontSize: Math.max(6, Math.round(labelData.fontSize * 0.7)),
-                            fontWeight: labelData.bold ? 700 : 400,
-                            fontStyle: labelData.italic ? 'italic' : 'normal',
-                            textDecoration: labelData.underline ? 'underline' : 'none',
-                            textAlign: 'center',
-                            width: '100%',
-                          }}
-                        >
-                          {labelData.firstName}
-                        </span>
-                      )}
-
-                      {labelData.imageUrl && imageIsUrl ? (
-                        <img
-                          src={labelData.imageUrl}
-                          alt="Selected image"
-                          className="my-0.5 object-contain"
-                          style={{ width: Math.max(8, Math.round(labelData.imageSize * 0.7)), height: Math.max(8, Math.round(labelData.imageSize * 0.7)) }}
-                          draggable={false}
-                        />
-                      ) : null}
-
-                      {!!labelData.lastName && (
-                        <span
-                          className="leading-tight"
-                          style={{
-                            color: labelData.textColor,
-                            fontSize: Math.max(6, Math.round(labelData.fontSize * 0.7)),
-                            fontWeight: labelData.bold ? 700 : 400,
-                            fontStyle: labelData.italic ? 'italic' : 'normal',
-                            textDecoration: labelData.underline ? 'underline' : 'none',
-                            textAlign: 'center',
-                            width: '100%',
-                          }}
-                        >
-                          {labelData.lastName}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  {[...Array(6)].map((_, i) => (
-                    <div
-                      key={`row3-${i}`}
-                      className="w-[3.2cm] h-[3.2cm] rounded-full border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-1 transition-all"
-                      style={{
-                        backgroundColor: labelData.backgroundColor,
-                        fontFamily: canvasFont,
-                      }}
-                    >
-                      {!!labelData.firstName && (
-                        <span
-                          className="text-center leading-tight"
-                          style={{
-                            color: labelData.textColor,
-                            fontSize: Math.max(6, Math.round(labelData.fontSize * 0.85)),
-                            fontWeight: labelData.bold ? 700 : 400,
-                            fontStyle: labelData.italic ? 'italic' : 'normal',
-                            textDecoration: labelData.underline ? 'underline' : 'none',
-                          }}
-                        >
-                          {labelData.firstName}
-                        </span>
-                      )}
-
-                      {labelData.imageUrl && imageIsUrl ? (
-                        <img
-                          src={labelData.imageUrl}
-                          alt="Selected image"
-                          className="my-0.5 object-contain"
-                          style={{ width: Math.max(8, Math.round(labelData.imageSize * 0.8)), height: Math.max(8, Math.round(labelData.imageSize * 0.8)) }}
-                          draggable={false}
-                        />
-                      ) : null}
-
-                      {!!labelData.lastName && (
-                        <span
-                          className="text-center leading-tight"
-                          style={{
-                            color: labelData.textColor,
-                            fontSize: Math.max(6, Math.round(labelData.fontSize * 0.85)),
-                            fontWeight: labelData.bold ? 700 : 400,
-                            fontStyle: labelData.italic ? 'italic' : 'normal',
-                            textDecoration: labelData.underline ? 'underline' : 'none',
-                          }}
-                        >
-                          {labelData.lastName}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-border">
+              <div className="mt-6 pt-6 border-t border-border flex flex-col sm:flex-row gap-3">
                 <Button
-                  variant="gold"
+                  variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={addToCart}
-                  disabled={!labelData.firstName && !labelData.lastName}
+                  onClick={() => save(labelData)}
+                  disabled={saving}
                 >
-                  Add to Cart
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : isEditingOther ? 'Save Changes' : 'Save Design'}
                 </Button>
+                {!isEditingOther && (
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    onClick={addToCart}
+                    disabled={!labelData.firstName && !labelData.lastName}
+                  >
+                    Add to Cart
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

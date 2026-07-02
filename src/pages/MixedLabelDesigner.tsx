@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Palette, Type, Wand2 } from 'lucide-react';
+import { Palette, Type, Wand2, Save } from 'lucide-react';
 import { ImagePicker } from '@/components/ImagePicker';
 import { DesignerWorkspace } from '@/components/designer/DesignerWorkspace';
+import { ImagePositionPicker, defaultImagePosition } from '@/components/ImagePositionPicker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/lib/cart';
+import { rectBTier, rectLineMaxFontSize, mixedSquareTier, squareSizeLimits, mixedCircleTier, circleSizeLimits } from '@/lib/mixedLabelSizing';
+import { MixedLabelPreview } from '@/components/previews/MixedLabelPreview';
+import { useSavedDesign } from '@/hooks/useSavedDesign';
 
 const fontColors = [
   { name: 'Maroon', value: '#7f1d1d' },
@@ -168,6 +172,7 @@ export default function MixedLabelDesigner() {
     lastName: '',
     imageUrl: '',
     imageSize: 24,
+    imagePosition: defaultImagePosition,
     textColor: fontColors[0].value,
     backgroundColor: 'transparent',
     font: fonts[0].value,
@@ -179,18 +184,11 @@ export default function MixedLabelDesigner() {
 
   const [previewFont, setPreviewFont] = useState<string | null>(null);
 
-  const imageIsUrl =
-    labelData.imageUrl?.startsWith('http') ||
-    labelData.imageUrl?.startsWith('data:') ||
-    labelData.imageUrl?.startsWith('/') ||
-    labelData.imageUrl?.startsWith('blob:');
-
   const updateLabel = (field: string, value: any) => {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
   const selectedFontName = fonts.find((f) => f.value === labelData.font)?.name ?? 'Font';
-  const canvasFont = previewFont ?? labelData.font;
 
   const resetTextFormatting = () => {
     setLabelData((prev) => ({
@@ -205,6 +203,7 @@ export default function MixedLabelDesigner() {
 
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { saving, isEditingOther, save } = useSavedDesign('mixed', setLabelData);
 
   const addToCart = () => {
     addItem({
@@ -219,182 +218,8 @@ export default function MixedLabelDesigner() {
     navigate('/cart');
   };
 
-  const fontSizeFor = (h: string) => {
-    if (h === '1cm') return Math.max(6, Math.round(labelData.fontSize * 0.7));
-    if (h === '0.5cm') return Math.max(6, Math.round(labelData.fontSize * 0.6));
-    return labelData.fontSize;
-  };
-
-  const renderRect = (w: string, h: string, key: string) => (
-    <div
-      key={key}
-      className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-1 transition-all rounded-md"
-      style={{
-        width: w,
-        height: h,
-        backgroundColor: labelData.backgroundColor,
-        fontFamily: canvasFont,
-      }}
-    >
-      {labelData.imageUrl && imageIsUrl ? (
-        <img
-          src={labelData.imageUrl}
-          alt="Selected image"
-          className="mb-0.5 object-contain"
-          style={{ width: Math.max(8, Math.round(labelData.imageSize * 0.7)), height: Math.max(8, Math.round(labelData.imageSize * 0.7)) }}
-          draggable={false}
-        />
-      ) : null}
-
-      {!!labelData.firstName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: fontSizeFor(h),
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.firstName}
-        </span>
-      )}
-
-      {!!labelData.lastName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: fontSizeFor(h),
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.lastName}
-        </span>
-      )}
-    </div>
-  );
-
-  const renderSquare = (size: string, key: string) => (
-    <div
-      key={key}
-      className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-md"
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: labelData.backgroundColor,
-        fontFamily: canvasFont,
-      }}
-    >
-      {labelData.imageUrl && imageIsUrl ? (
-        <img
-          src={labelData.imageUrl}
-          alt="Selected image"
-          className="mb-1 object-contain"
-          style={{ width: labelData.imageSize, height: labelData.imageSize }}
-          draggable={false}
-        />
-      ) : null}
-
-      {!!labelData.firstName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: labelData.fontSize,
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.firstName}
-        </span>
-      )}
-
-      {!!labelData.lastName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: labelData.fontSize,
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.lastName}
-        </span>
-      )}
-    </div>
-  );
-
-  const renderCircle = (diameter: string, key: string) => (
-    <div
-      key={key}
-      className="relative border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-full"
-      style={{
-        width: diameter,
-        height: diameter,
-        backgroundColor: labelData.backgroundColor,
-        fontFamily: canvasFont,
-      }}
-    >
-      {labelData.imageUrl && imageIsUrl ? (
-        <img
-          src={labelData.imageUrl}
-          alt="Selected image"
-          className="mb-1 object-contain"
-          style={{ width: labelData.imageSize, height: labelData.imageSize }}
-          draggable={false}
-        />
-      ) : null}
-
-      {!!labelData.firstName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: labelData.fontSize,
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.firstName}
-        </span>
-      )}
-
-      {!!labelData.lastName && (
-        <span
-          className="leading-tight"
-          style={{
-            color: labelData.textColor,
-            fontSize: labelData.fontSize,
-            fontWeight: labelData.bold ? 700 : 400,
-            fontStyle: labelData.italic ? 'italic' : 'normal',
-            textDecoration: labelData.underline ? 'underline' : 'none',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          {labelData.lastName}
-        </span>
-      )}
-    </div>
-  );
+  const squareLimits = squareSizeLimits(mixedSquareTier);
+  const circleLimits = circleSizeLimits(mixedCircleTier);
 
   return (
     <Layout>
@@ -450,7 +275,17 @@ export default function MixedLabelDesigner() {
                       />
                       <span className="text-sm text-muted-foreground w-10 text-right">px</span>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Applies to the circular and square labels only (the rectangular labels are text-only) · capped at {circleLimits.maxImageSize}px on circles and {squareLimits.maxImageSize}px on squares so it never overflows.
+                    </p>
                   </div>
+
+                  <ImagePositionPicker
+                    value={labelData.imagePosition}
+                    onChange={(v) => updateLabel('imagePosition', v)}
+                    allowedPositions={['top', 'bottom']}
+                    helperText="Applies to the circular and square labels only — the rectangular labels are text-only."
+                  />
 
                   <div className="space-y-2">
                     <Label className="text-lg font-semibold flex items-center gap-2">
@@ -537,6 +372,9 @@ export default function MixedLabelDesigner() {
                       />
                       <span className="text-sm text-muted-foreground w-10 text-right">px</span>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Scales to fit each shape · capped at {circleLimits.maxFontSize}px on circles, {squareLimits.maxFontSize}px on squares, and {rectLineMaxFontSize(rectBTier)}px on the smallest rectangles so text never overflows.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -582,35 +420,36 @@ export default function MixedLabelDesigner() {
         canvas={
           <Card className="border-2 border-primary/20">
             <CardContent className="p-6">
-              <div className="flex flex-col items-center justify-center gap-3 p-2">
-                {[...Array(4)].map((_, row) => (
-                  <div key={`row-rect5x1-${row}`} className="flex items-center justify-center gap-2">
-                    {[...Array(4)].map((_, i) => renderRect('5cm', '1cm', `rect5x1-${row}-${i}`))}
-                  </div>
-                ))}
-                {[...Array(2)].map((_, row) => (
-                  <div key={`row-rect4_5x0_5-${row}`} className="flex items-center justify-center gap-2">
-                    {[...Array(4)].map((_, i) => renderRect('4.5cm', '0.5cm', `rect4_5x0_5-${row}-${i}`))}
-                  </div>
-                ))}
-                <div className="flex items-center justify-center gap-2">
-                  {[...Array(7)].map((_, i) => renderSquare('2.5cm', `square-2_5-${i}`))}
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  {[...Array(7)].map((_, i) => renderCircle('2.5cm', `circle-2_5-${i}`))}
-                </div>
-              </div>
+              <MixedLabelPreview labelData={labelData} fontOverride={previewFont ?? undefined} />
 
-              <div className="mt-6 pt-6 border-t border-border">
+              {isEditingOther && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  You're editing a customer's saved design.
+                </p>
+              )}
+
+              <div className="mt-6 pt-6 border-t border-border flex flex-col sm:flex-row gap-3">
                 <Button
-                  variant="gold"
+                  variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={addToCart}
-                  disabled={!labelData.firstName && !labelData.lastName}
+                  onClick={() => save(labelData)}
+                  disabled={saving}
                 >
-                  Add to Cart
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : isEditingOther ? 'Save Changes' : 'Save Design'}
                 </Button>
+                {!isEditingOther && (
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    onClick={addToCart}
+                    disabled={!labelData.firstName && !labelData.lastName}
+                  >
+                    Add to Cart
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

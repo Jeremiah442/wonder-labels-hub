@@ -4,10 +4,16 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Package, Users, MessageSquare, CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
+import { Package, Users, MessageSquare, CheckCircle, Clock, XCircle, Eye, Pencil, Printer, Palette } from 'lucide-react';
+import type { SavedDesignRow, ProductType } from '@/lib/savedDesigns';
+import { CircularLabelPreview, type CircularLabelData } from '@/components/previews/CircularLabelPreview';
+import { SquareLabelPreview, type SquareLabelData } from '@/components/previews/SquareLabelPreview';
+import { RectangularLabelPreview, type RectangularLabelData } from '@/components/previews/RectangularLabelPreview';
+import { MixedLabelPreview, type MixedLabelData } from '@/components/previews/MixedLabelPreview';
 
 interface Order {
   id: string;
@@ -34,13 +40,50 @@ interface ContactRequest {
   created_at: string;
 }
 
+interface Profile {
+  user_id: string;
+  full_name: string | null;
+}
+
 const statusOptions = ['pending', 'processing', 'completed', 'cancelled'];
+
+const productTypeLabels: Record<ProductType, string> = {
+  circular: 'Circular Labels',
+  square: 'Square Labels',
+  rectangular: 'Rectangular Labels',
+  mixed: 'Mixed Labels',
+};
+
+const productTypeEditPath: Record<ProductType, string> = {
+  circular: '/designer',
+  square: '/designer/square',
+  rectangular: '/designer/rectangular',
+  mixed: '/designer/mixed',
+};
+
+function renderSavedDesignPreview(row: SavedDesignRow) {
+  switch (row.product_type) {
+    case 'circular':
+      return <CircularLabelPreview labelData={row.design as unknown as CircularLabelData} />;
+    case 'square':
+      return <SquareLabelPreview labelData={row.design as unknown as SquareLabelData} />;
+    case 'rectangular':
+      return <RectangularLabelPreview labelData={row.design as unknown as RectangularLabelData} />;
+    case 'mixed':
+      return <MixedLabelPreview labelData={row.design as unknown as MixedLabelData} />;
+    default:
+      return null;
+  }
+}
 
 export default function Admin() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [contacts, setContacts] = useState<ContactRequest[]>([]);
+  const [savedDesigns, setSavedDesigns] = useState<SavedDesignRow[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [previewRow, setPreviewRow] = useState<SavedDesignRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -63,17 +106,25 @@ export default function Admin() {
 
   const fetchData = async () => {
     try {
-      const [ordersRes, contactsRes] = await Promise.all([
+      const [ordersRes, contactsRes, savedDesignsRes, profilesRes] = await Promise.all([
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('contact_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('saved_designs').select('*').order('updated_at', { ascending: false }),
+        supabase.from('profiles').select('user_id, full_name'),
       ]);
 
       if (ordersRes.error) throw ordersRes.error;
       if (contactsRes.error) throw contactsRes.error;
+      if (savedDesignsRes.error) throw savedDesignsRes.error;
+      if (profilesRes.error) throw profilesRes.error;
 
       setOrders(ordersRes.data || []);
       setContacts(contactsRes.data || []);
-      
+      setSavedDesigns(
+        (savedDesignsRes.data || []).map((row) => ({ ...row, design: row.design as Record<string, unknown> })) as SavedDesignRow[]
+      );
+      setProfiles(profilesRes.data || []);
+
       setStats({
         totalOrders: ordersRes.data?.length || 0,
         pendingOrders: ordersRes.data?.filter(o => o.status === 'pending').length || 0,
@@ -86,6 +137,8 @@ export default function Admin() {
       setLoading(false);
     }
   };
+
+  const customerNameFor = (userId: string) => profiles.find((p) => p.user_id === userId)?.full_name || 'Unnamed customer';
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
@@ -179,6 +232,7 @@ export default function Admin() {
           <Tabs className="space-y-6">
             <TabsList className="bg-surface-1 border border-border">
               <TabsTrigger value="orders">Orders</TabsTrigger>
+              <TabsTrigger value="saved-designs">Saved Designs</TabsTrigger>
               <TabsTrigger value="contacts">Contact Requests</TabsTrigger>
             </TabsList>
 
@@ -251,6 +305,67 @@ export default function Admin() {
               )}
             </TabsContent>
 
+            <TabsContent value="saved-designs" className="space-y-4">
+              {loading ? (
+                <div className="text-center py-12 text-muted-foreground">Loading...</div>
+              ) : savedDesigns.length === 0 ? (
+                <div className="text-center py-12 rounded-xl bg-gradient-card border border-border">
+                  <Palette className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-display text-lg font-semibold text-foreground">
+                    No saved designs yet
+                  </h3>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Customer</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Product</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Last Updated</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {savedDesigns.map((row) => (
+                        <tr key={row.id} className="border-b border-border/50 hover:bg-surface-2">
+                          <td className="py-4 px-4 font-medium text-foreground">{customerNameFor(row.user_id)}</td>
+                          <td className="py-4 px-4">
+                            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                              {productTypeLabels[row.product_type]}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-muted-foreground">
+                            {new Date(row.updated_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setPreviewRow(row)}
+                                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                              >
+                                <Eye className="w-4 h-4" />
+                                Preview
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => navigate(`${productTypeEditPath[row.product_type]}?editId=${row.id}`)}
+                                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                              >
+                                <Pencil className="w-4 h-4" />
+                                Edit
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="contacts" className="space-y-4">
               {loading ? (
                 <div className="text-center py-12 text-muted-foreground">Loading...</div>
@@ -294,6 +409,37 @@ export default function Admin() {
           </Tabs>
         </div>
       </section>
+
+      <Dialog open={!!previewRow} onOpenChange={(open) => !open && setPreviewRow(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {previewRow ? `${customerNameFor(previewRow.user_id)} — ${productTypeLabels[previewRow.product_type]}` : 'Preview'}
+            </DialogTitle>
+            <DialogDescription>
+              Read-only preview of the customer's saved design. Use Print to send it straight to a printer.
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewRow && (
+            <>
+              <div id="print-area" className="rounded-xl border border-border bg-white p-4 overflow-x-auto min-w-0">
+                {renderSavedDesignPreview(previewRow)}
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="outline" onClick={() => navigate(`${productTypeEditPath[previewRow.product_type]}?editId=${previewRow.id}`)}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="gold" onClick={() => window.print()}>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

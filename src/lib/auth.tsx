@@ -36,14 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
 
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
+          checkAdminRole(session.user.id).finally(() => setLoading(false));
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
       }
     );
@@ -62,10 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
 
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkAdminRole(session.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
     });
 

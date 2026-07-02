@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Palette, Type, Wand2 } from 'lucide-react';
+import { Palette, Type, Wand2, Save } from 'lucide-react';
 import { ImagePicker } from '@/components/ImagePicker';
 import { DesignerWorkspace } from '@/components/designer/DesignerWorkspace';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/lib/cart';
+import { ImagePositionPicker, defaultImagePosition, type ImagePosition } from '@/components/ImagePositionPicker';
+import { smallRectTier, rectSizeLimits } from '@/lib/rectangleLabelSizing';
+import { RectangularLabelPreview } from '@/components/previews/RectangularLabelPreview';
+import { useSavedDesign } from '@/hooks/useSavedDesign';
 
 const fontColors = [
   { name: 'Maroon', value: '#7f1d1d' },
@@ -168,6 +172,8 @@ export default function RectangularLabelDesigner() {
     lastName: '',
     imageUrl: '',
     imageSize: 24,
+    imagePosition: defaultImagePosition,
+    compactImagePosition: 'left' as ImagePosition,
     textColor: fontColors[0].value,
     backgroundColorCol14TopAndBottom: 'transparent',
     backgroundColorCol14BottomRect: 'transparent',
@@ -181,18 +187,11 @@ export default function RectangularLabelDesigner() {
 
   const [previewFont, setPreviewFont] = useState<string | null>(null);
 
-  const imageIsUrl =
-    labelData.imageUrl?.startsWith('http') ||
-    labelData.imageUrl?.startsWith('data:') ||
-    labelData.imageUrl?.startsWith('/') ||
-    labelData.imageUrl?.startsWith('blob:');
-
   const updateLabel = (field: string, value: any) => {
     setLabelData(prev => ({ ...prev, [field]: value }));
   };
 
   const selectedFontName = fonts.find((f) => f.value === labelData.font)?.name ?? 'Font';
-  const canvasFont = previewFont ?? labelData.font;
 
   const resetTextFormatting = () => {
     setLabelData((prev) => ({
@@ -207,6 +206,7 @@ export default function RectangularLabelDesigner() {
 
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { saving, isEditingOther, save } = useSavedDesign('rectangular', setLabelData);
 
   const addToCart = () => {
     addItem({
@@ -221,47 +221,7 @@ export default function RectangularLabelDesigner() {
     navigate('/cart');
   };
 
-  const column1 = [
-    { width: '5cm', height: '3cm' },
-    { width: '5cm', height: '3cm' },
-    { width: '5cm', height: '2cm' },
-  ];
-  const column2Ref = column1[2];
-  const column2 = Array.from({ length: 4 }, () => ({ width: column2Ref.width, height: column2Ref.height }));
-  const column3 = Array.from({ length: 7 }, () => ({ width: '3.3cm', height: '1cm' }));
-  const column4 = [...column1];
-  const bottomRow = Array.from({ length: 6 }, () => ({ width: '3.3cm', height: '1cm' }));
-
-  const columns = [column1, column2, column3, column4];
-
-  const textSizeFor = (h: string) => {
-    if (h === '3cm') return 'text-xs';
-    if (h === '2cm') return 'text-[10px]';
-    return 'text-[8px]';
-  };
-
-  const iconSizeFor = (h: string) => {
-    if (h === '3cm') return 'text-xl';
-    if (h === '2cm') return 'text-base';
-    return 'text-sm';
-  };
-
-  const fontSizeFor = (h: string) => {
-    if (h === '3cm') return labelData.fontSize;
-    if (h === '2cm') return Math.max(6, Math.round(labelData.fontSize * 0.85));
-    return Math.max(6, Math.round(labelData.fontSize * 0.7));
-  };
-
-  const previewBackgroundForRect = (colIndex: number, rectIndex: number) => {
-    const isCol1Or4 = colIndex === 0 || colIndex === 3;
-    if (isCol1Or4) {
-      return rectIndex < 2
-        ? labelData.backgroundColorCol14TopAndBottom
-        : labelData.backgroundColorCol14BottomRect;
-    }
-
-    return labelData.backgroundColorCol23;
-  };
+  const smallRectLimits = rectSizeLimits(smallRectTier);
 
   return (
     <Layout>
@@ -317,7 +277,24 @@ export default function RectangularLabelDesigner() {
                       />
                       <span className="text-sm text-muted-foreground w-10 text-right">px</span>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Scales to fit each rectangle · capped at {smallRectLimits.maxImageSize}px on the smallest labels so it never overflows.
+                    </p>
                   </div>
+
+                  <ImagePositionPicker
+                    value={labelData.imagePosition}
+                    onChange={(v) => updateLabel('imagePosition', v)}
+                    label="Image Position (large labels)"
+                  />
+
+                  <ImagePositionPicker
+                    value={labelData.compactImagePosition}
+                    onChange={(v) => updateLabel('compactImagePosition', v)}
+                    allowedPositions={['left', 'right']}
+                    label="Image Position (medium & smallest labels)"
+                    helperText="Medium and smallest labels are too short to stack the image above or below the name, so only left/right are offered."
+                  />
 
                   <div className="space-y-2">
                     <Label className="text-lg font-semibold flex items-center gap-2">
@@ -446,6 +423,9 @@ export default function RectangularLabelDesigner() {
                       />
                       <span className="text-sm text-muted-foreground w-10 text-right">px</span>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Scales to fit each rectangle · capped at {smallRectLimits.maxFontSize}px on the smallest labels so text never overflows.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -491,138 +471,36 @@ export default function RectangularLabelDesigner() {
         canvas={
           <Card className="border-2 border-primary/20">
             <CardContent className="p-6">
-              <div className="flex items-start justify-center min-h-[400px] p-4 gap-4 overflow-x-auto">
-                {columns.map((col, colIndex) => (
-                  <div key={`col-${colIndex}`} className="flex flex-col gap-2 items-center">
-                    {col.map((rect, i) => (
-                      <div
-                        key={`rect-${colIndex}-${i}`}
-                        className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-2 transition-all rounded-md"
-                        style={{
-                          width: rect.width,
-                          height: rect.height,
-                          backgroundColor: previewBackgroundForRect(colIndex, i),
-                          fontFamily: canvasFont,
-                        }}
-                      >
-                        {labelData.imageUrl && imageIsUrl ? (
-                          <img
-                            src={labelData.imageUrl}
-                            alt="Selected image"
-                            className="mb-1 object-contain"
-                            style={{ width: labelData.imageSize, height: labelData.imageSize }}
-                            draggable={false}
-                          />
-                        ) : null}
+              <RectangularLabelPreview labelData={labelData} fontOverride={previewFont ?? undefined} />
 
-                        {!!labelData.firstName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: fontSizeFor(rect.height),
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.firstName}
-                          </span>
-                        )}
+              {isEditingOther && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  You're editing a customer's saved design.
+                </p>
+              )}
 
-                        {!!labelData.lastName && (
-                          <span
-                            className="leading-tight"
-                            style={{
-                              color: labelData.textColor,
-                              fontSize: fontSizeFor(rect.height),
-                              fontWeight: labelData.bold ? 700 : 400,
-                              fontStyle: labelData.italic ? 'italic' : 'normal',
-                              textDecoration: labelData.underline ? 'underline' : 'none',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {labelData.lastName}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-
-              <div className="-mt-2 flex items-center justify-center gap-2">
-                {bottomRow.map((rect, i) => (
-                  <div
-                    key={`bottom-${i}`}
-                    className="border-4 border-gray-300 shadow-lg flex flex-col items-center justify-center p-1 transition-all rounded-md"
-                    style={{
-                      width: rect.width,
-                      height: rect.height,
-                      backgroundColor: labelData.backgroundColorCol14TopAndBottom,
-                      fontFamily: canvasFont,
-                    }}
-                  >
-                    {labelData.imageUrl && imageIsUrl ? (
-                      <img
-                        src={labelData.imageUrl}
-                        alt="Selected image"
-                        className="mb-0.5 object-contain"
-                        style={{ width: Math.max(8, Math.round(labelData.imageSize * 0.8)), height: Math.max(8, Math.round(labelData.imageSize * 0.8)) }}
-                        draggable={false}
-                      />
-                    ) : null}
-
-                    {!!labelData.firstName && (
-                      <span
-                        className="leading-tight"
-                        style={{
-                          color: labelData.textColor,
-                          fontSize: fontSizeFor(rect.height),
-                          fontWeight: labelData.bold ? 700 : 400,
-                          fontStyle: labelData.italic ? 'italic' : 'normal',
-                          textDecoration: labelData.underline ? 'underline' : 'none',
-                          textAlign: 'center',
-                          width: '100%',
-                        }}
-                      >
-                        {labelData.firstName}
-                      </span>
-                    )}
-
-                    {!!labelData.lastName && (
-                      <span
-                        className="leading-tight"
-                        style={{
-                          color: labelData.textColor,
-                          fontSize: fontSizeFor(rect.height),
-                          fontWeight: labelData.bold ? 700 : 400,
-                          fontStyle: labelData.italic ? 'italic' : 'normal',
-                          textDecoration: labelData.underline ? 'underline' : 'none',
-                          textAlign: 'center',
-                          width: '100%',
-                        }}
-                      >
-                        {labelData.lastName}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-border">
+              <div className="mt-6 pt-6 border-t border-border flex flex-col sm:flex-row gap-3">
                 <Button
-                  variant="gold"
+                  variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={addToCart}
-                  disabled={!labelData.firstName && !labelData.lastName}
+                  onClick={() => save(labelData)}
+                  disabled={saving}
                 >
-                  Add to Cart
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : isEditingOther ? 'Save Changes' : 'Save Design'}
                 </Button>
+                {!isEditingOther && (
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    onClick={addToCart}
+                    disabled={!labelData.firstName && !labelData.lastName}
+                  >
+                    Add to Cart
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
